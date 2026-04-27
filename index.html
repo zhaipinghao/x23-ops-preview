@@ -202,6 +202,47 @@
     .mini-input.wide { grid-template-columns: repeat(4, minmax(130px, 1fr)); }
     .field-wide { grid-column: span 2; }
     .table-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .workbench-hero {
+      border: 1px solid rgba(70, 213, 202, .45);
+      background:
+        linear-gradient(135deg, rgba(70, 213, 202, .16), rgba(233, 180, 93, .08)),
+        var(--surface);
+    }
+    .workbench-hero h2 { font-size: 22px; }
+    .workbench-steps {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .workbench-group {
+      margin-top: 14px;
+    }
+    .workbench-group-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 10px;
+    }
+    .workbench-card h3 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(123, 216, 143, .13);
+      border: 1px solid rgba(123, 216, 143, .38);
+      color: #bdf4ca;
+      font-size: 11px;
+      white-space: nowrap;
+    }
     .saved-note {
       min-height: 24px;
       color: var(--green);
@@ -463,11 +504,23 @@
         ["DEMO-ORDER-003", "寄賣", "X23 奧丁之聲", "2", "已出貨", "正常"],
       ],
       platforms: [
-        ["蝦皮賣家中心", "https://seller.shopee.tw/", "訂單、商品、站內廣告、營運表現", "每天回填銷售額、訂單、訪客、廣告餘額"],
-        ["Momo 廠商後台", "https://vendor.momoshop.com.tw/", "銷售、庫存、商品審核", "每週匯出銷售與庫存"],
-        ["PChome 供應商平台", "https://supplier.pchome.com.tw/", "商品、訂單、庫存", "每週檢查商品與訂單"],
-        ["Meta Ads Manager", "https://business.facebook.com/adsmanager", "FB / IG 廣告活動、素材成效", "每週匯出活動與素材報表"],
-        ["Instagram", "https://www.instagram.com/", "貼文、限動、私訊", "發布排程與自動回覆檢查"],
+        ["WACA 商店後台", "https://admin.waca.net/index", "正式官網訂單、商品、商店設定", "每日看訂單與商品狀態", "官網", "已登入"],
+        ["WACA Facebook 串接", "https://admin.waca.net/market/FB", "Facebook Business Extension / Pixel / CAPI", "已串接，後續只檢查狀態", "官網", "已串接"],
+        ["WACA Google 追蹤", "https://admin.waca.net/market/trace", "GA4、Google Ads 再行銷、GTM、Search Console", "AW-450767599 已在 WACA", "官網", "已串接"],
+        ["正式網站", "https://94monster.com/", "前台官網與購買入口", "檢查活動頁、價格、CTA", "官網", "已上線"],
+        ["1shop 後台", "https://admin.1shop.tw/login", "一頁購物、活動頁、短鏈成交頁", "需要時登入檢查活動", "銷售通路", "已放入口"],
+        ["蝦皮賣家中心", "https://seller.shopee.tw/", "訂單、商品、站內廣告、營運表現", "每天回填銷售額、訂單、訪客、廣告餘額", "銷售通路", "已登入"],
+        ["Momo 廠商後台", "https://vendor.momoshop.com.tw/", "銷售、庫存、商品審核", "每週匯出銷售與庫存", "銷售通路", "待登入"],
+        ["PChome 供應商平台", "https://supplier.pchome.com.tw/", "商品、訂單、庫存", "每週檢查商品與訂單", "銷售通路", "待登入"],
+        ["Meta Business Suite", "https://business.facebook.com/latest/home", "FB / IG 內容、排程、收件匣", "排貼文與看互動", "廣告社群", "待登入"],
+        ["Meta Ads Manager", "https://business.facebook.com/adsmanager", "FB / IG 廣告活動、素材成效", "每週匯出活動與素材報表", "廣告社群", "待登入"],
+        ["Facebook 粉專", "https://www.facebook.com/94guai", "94monster 粉絲專頁", "看貼文、留言、粉專狀態", "廣告社群", "已放入口"],
+        ["Instagram", "https://www.instagram.com/94monster/", "IG 貼文、Reels、限動、私訊", "發布排程與自動回覆檢查", "廣告社群", "已放入口"],
+        ["Google Ads", "https://ads.google.com/aw/overview", "Google 廣告活動與轉換", "看活動、轉換、費用", "廣告社群", "已放入口"],
+        ["Google Analytics", "https://analytics.google.com/", "GA4 流量與轉換事件", "看來源、商品頁、購買事件", "廣告社群", "已放入口"],
+        ["Google Tag Manager", "https://tagmanager.google.com/", "GTM 容器與追蹤碼", "只檢查，不亂發布版本", "廣告社群", "已放入口"],
+        ["GitHub Repo", "https://github.com/zhaipinghao/x23-ops-preview", "X23 中台預覽版程式碼", "我改完後 push / deploy", "部署", "已建立"],
+        ["Netlify", "https://app.netlify.com/", "網站部署與預覽網址", "給妹妹看公開預覽", "部署", "已放入口"],
       ],
       shopeeMetrics: [
         ["2026-04-27", "NT$6,890", "1", "117", "141", "0.71%", "NT$2,022", "10.56", "從截圖回填的示範數字"],
@@ -487,7 +540,10 @@
       const raw = localStorage.getItem(storageKey);
       if (!raw) return fresh;
       try {
-        return { ...fresh, ...JSON.parse(raw) };
+        const saved = JSON.parse(raw);
+        const merged = { ...fresh, ...saved };
+        merged.platforms = fresh.platforms;
+        return merged;
       } catch (error) {
         return fresh;
       }
@@ -544,31 +600,44 @@
 
     function renderPlatforms() {
       const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-      const platformCards = state.platforms.map(platform => `
-        <div class="panel">
-          <h3>${esc(platform[0])}</h3>
+      const groups = ["官網", "銷售通路", "廣告社群", "部署"];
+      const platformCard = platform => `
+        <div class="panel workbench-card">
+          <h3>${esc(platform[0])}<span class="status-dot">${esc(platform[5] || "已放入口")}</span></h3>
           <p class="muted">${esc(platform[2])}</p>
           <div class="actions" style="margin-top:10px">
-            <button class="action-button link" type="button" onclick='openPlatform(${JSON.stringify(platform[1])})'>開後台</button>
+            <button class="action-button link" type="button" onclick='openPlatform(${JSON.stringify(platform[1])})'>開啟</button>
             <span class="badge">${esc(platform[3])}</span>
           </div>
+        </div>
+      `;
+      const platformGroups = groups.map(group => `
+        <div class="workbench-group">
+          <div class="workbench-group-title">
+            <h2>${esc(group)}</h2>
+            <span class="badge">${state.platforms.filter(platform => platform[4] === group).length} 個入口</span>
+          </div>
+          <div class="grid three">${state.platforms.filter(platform => platform[4] === group).map(platformCard).join("")}</div>
         </div>
       `).join("");
       document.getElementById("platforms").innerHTML = `
         <div class="grid two">
-          <div class="panel">
-            <h2>平台登入入口</h2>
-            <p class="muted">你在原本平台自己登入；中台只記錄任務、回填數字、判讀結果，不保存平台密碼。</p>
-            <div class="notice">蝦皮、Momo、PChome、Meta、IG 的退款、改價、上架、加預算都要平皓確認後才執行。</div>
+          <div class="panel workbench-hero">
+            <h2>X23 登入工作台</h2>
+            <p class="muted">裡面已經放好所有入口：GitHub、Netlify、WACA、1shop、蝦皮、Meta、Google。你可以一個一個點開登入，不用把密碼給我。</p>
+            <div class="notice">我負責跳轉、整理、判讀、填草稿；真正送出發文、授權、加預算、退款、改價前會停下來等你確認。</div>
           </div>
           <div class="panel">
-            <h2>我可以代管的範圍</h2>
-            <div class="chips">
-              ${["每天看銷售", "整理廣告成效", "排貼文", "抓缺素材", "提醒出貨", "列高風險待確認"].map(x => `<span class="chip">${esc(x)}</span>`).join("")}
+            <h2>使用方式</h2>
+            <div class="workbench-steps">
+              <div>1. 你點入口並自己登入帳號。</div>
+              <div>2. 登完跟我說「好了」。</div>
+              <div>3. 我接手看數據、排任務、做貼文草稿。</div>
+              <div>4. 需要送出或改設定時，我會先問你。</div>
             </div>
           </div>
         </div>
-        <div class="grid three" style="margin-top:12px">${platformCards}</div>
+        ${platformGroups}
         <div class="panel" style="margin-top:12px">
           <h2>蝦皮每日快速回填</h2>
           <p class="muted">你現在截圖裡看到的銷售額、訂單、訪客、商品點擊、轉換率、廣告餘額都可以先手動回填；正式版再接報表上傳或 API。</p>
