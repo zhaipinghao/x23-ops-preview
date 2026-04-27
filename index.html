@@ -167,6 +167,76 @@
       padding: 8px 10px;
       cursor: not-allowed;
     }
+    .confirm-box {
+      margin-top: 14px;
+      border: 1px solid rgba(255, 115, 102, .55);
+      background: rgba(255, 115, 102, .08);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .confirm-box strong {
+      display: block;
+      color: #ffd2cc;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .confirm-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 7px;
+      color: #ffc3bb;
+      font-size: 12px;
+    }
+    .confirm-list li {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 6px;
+      align-items: start;
+    }
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(70, 213, 202, .16), transparent 28%),
+        radial-gradient(circle at 80% 80%, rgba(233, 180, 93, .12), transparent 32%),
+        rgba(8, 11, 14, .96);
+    }
+    .login-screen.hidden { display: none; }
+    .login-card {
+      width: min(420px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #12181e;
+      padding: 18px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .34);
+    }
+    .login-card .mark { margin-bottom: 12px; }
+    .login-card form { display: grid; gap: 10px; margin-top: 12px; }
+    .login-actions { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+    .primary-button {
+      border: 1px solid #318d85;
+      border-radius: 6px;
+      background: #1d6b66;
+      color: var(--text);
+      min-height: 38px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .ghost-button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      min-height: 38px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
     .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
     .asset {
       border: 1px solid var(--line);
@@ -195,6 +265,28 @@
   </style>
 </head>
 <body>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="mark">X23</div>
+      <h1>內部預覽登入</h1>
+      <p class="muted">這是 GitHub Pages 靜態預覽登入，只用來讓妹妹先看流程。正式版會改成真正帳號權限。</p>
+      <form id="loginForm">
+        <div>
+          <label>使用者</label>
+          <input id="loginName" autocomplete="name" placeholder="例如：妹妹 / 出貨人員 / 平皓" required>
+        </div>
+        <div>
+          <label>預覽通行碼</label>
+          <input id="loginCode" autocomplete="off" placeholder="輸入任意通行碼即可進入預覽" required>
+        </div>
+        <div class="login-actions">
+          <button class="primary-button" type="submit">進入中台</button>
+          <button class="ghost-button" type="button" id="previewBypass">只看展示</button>
+        </div>
+      </form>
+      <div class="notice" style="margin-top:12px">不要在這裡輸入 FB、IG、蝦皮、Momo 或任何真實密碼。</div>
+    </div>
+  </div>
   <div class="app">
     <aside>
       <div class="brand">
@@ -207,6 +299,17 @@
       <nav id="nav"></nav>
       <div class="notice" style="margin-top:14px">
         預覽版不連後台、不存帳密、不包含真實訂單與廣告報表。正式操作仍要人工登入與審核。
+      </div>
+      <div class="confirm-box">
+        <strong>一定要平皓確認</strong>
+        <ul class="confirm-list">
+          <li><span>!</span><span>平台登入與權限授權</span></li>
+          <li><span>!</span><span>退款、取消訂單、退貨判斷</span></li>
+          <li><span>!</span><span>改售價、改庫存、下架商品</span></li>
+          <li><span>!</span><span>提高廣告預算或開新活動</span></li>
+          <li><span>!</span><span>使用 KOL / 人物 / 評價素材</span></li>
+          <li><span>!</span><span>對外承諾交期、保固、認證</span></li>
+        </ul>
       </div>
     </aside>
     <main>
@@ -475,7 +578,39 @@
       show(location.hash.replace("#", "") || "dashboard");
     }
 
+    function unlockPreview(name) {
+      const screen = document.getElementById("loginScreen");
+      screen.classList.add("hidden");
+      if (name) {
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = `預覽者：${name}`;
+        document.querySelector("header .badge-row").appendChild(badge);
+      }
+    }
+
+    function setupLogin() {
+      const savedName = sessionStorage.getItem("x23_preview_user");
+      if (savedName) {
+        unlockPreview(savedName);
+        return;
+      }
+      document.getElementById("loginForm").addEventListener("submit", event => {
+        event.preventDefault();
+        const name = document.getElementById("loginName").value.trim() || "內部夥伴";
+        const code = document.getElementById("loginCode").value.trim();
+        if (!code) return;
+        sessionStorage.setItem("x23_preview_user", name);
+        unlockPreview(name);
+      });
+      document.getElementById("previewBypass").addEventListener("click", () => {
+        sessionStorage.setItem("x23_preview_user", "展示模式");
+        unlockPreview("展示模式");
+      });
+    }
+
     renderAll();
+    setupLogin();
   </script>
 </body>
 </html>
