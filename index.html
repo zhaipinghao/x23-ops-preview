@@ -83,7 +83,7 @@
     h3 { margin: 0 0 8px; font-size: 15px; }
     p { margin: 0 0 10px; }
     .sub { color: var(--muted); max-width: 860px; font-size: 13px; }
-    .badge-row, .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .badge-row, .chips, .actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .badge, .chip {
       display: inline-flex;
       align-items: center;
@@ -158,14 +158,55 @@
       padding: 8px 9px;
     }
     textarea { min-height: 70px; resize: vertical; }
-    .fake-button {
+    .fake-button, .action-button {
       border: 1px solid #3b4a56;
       border-radius: 6px;
       background: #26313b;
       color: var(--text);
       min-height: 36px;
       padding: 8px 10px;
-      cursor: not-allowed;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .fake-button { cursor: not-allowed; opacity: .72; }
+    .action-button:hover, .primary-button:hover, .ghost-button:hover { filter: brightness(1.12); }
+    .action-button.small {
+      min-height: 30px;
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+    .action-button.link {
+      border-color: rgba(70, 213, 202, .65);
+      background: rgba(70, 213, 202, .14);
+      color: #bffaf5;
+    }
+    .action-button.warn {
+      border-color: rgba(233, 180, 93, .7);
+      background: rgba(233, 180, 93, .16);
+      color: #ffe1ad;
+    }
+    .action-button.danger {
+      border-color: rgba(255, 115, 102, .7);
+      background: rgba(255, 115, 102, .15);
+      color: #ffd2cc;
+    }
+    .mini-input {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(110px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .mini-input.wide { grid-template-columns: repeat(4, minmax(130px, 1fr)); }
+    .field-wide { grid-column: span 2; }
+    .table-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .saved-note {
+      min-height: 24px;
+      color: var(--green);
+      font-size: 12px;
+      margin-top: 8px;
     }
     .confirm-box {
       margin-top: 14px;
@@ -260,6 +301,9 @@
       aside { height: auto; position: static; }
       header { flex-direction: column; }
       .kpis, .two, .three, .preview-form { grid-template-columns: 1fr; }
+      .mini-input { grid-template-columns: 1fr; }
+      .mini-input.wide { grid-template-columns: 1fr; }
+      .field-wide { grid-column: auto; }
       .row { grid-template-columns: 1fr; }
     }
   </style>
@@ -298,7 +342,7 @@
       </div>
       <nav id="nav"></nav>
       <div class="notice" style="margin-top:14px">
-        預覽版不連後台、不存帳密、不包含真實訂單與廣告報表。正式操作仍要人工登入與審核。
+        預覽版可跳轉平台，但不存帳密、不包含真實訂單與廣告報表。正式操作仍要人工登入與審核。
       </div>
       <div class="confirm-box">
         <strong>一定要平皓確認</strong>
@@ -316,16 +360,17 @@
       <header>
         <div>
           <h1>X23 電商營運中台預覽</h1>
-          <div class="sub">這份版本是給妹妹與內部夥伴看的流程展示：看懂每天要補哪些資料、Agent 怎麼分工、哪些事由人工處理、素材與貼文怎麼排。</div>
+          <div class="sub">這份版本是給妹妹與內部夥伴看的流程展示：可以先新增貼文、切任務狀態、回填蝦皮數字；平台正式操作仍保留人工登入與審核。</div>
         </div>
         <div class="badge-row">
           <span class="badge">展示資料</span>
-          <span class="badge">不可儲存</span>
-          <span class="badge">無平台連線</span>
+          <span class="badge">本機儲存</span>
+          <span class="badge">平台跳轉</span>
         </div>
       </header>
 
       <section id="dashboard" class="section"></section>
+      <section id="platforms" class="section"></section>
       <section id="social" class="section"></section>
       <section id="tasks" class="section"></section>
       <section id="sources" class="section"></section>
@@ -339,6 +384,7 @@
   <script>
     const tabs = [
       ["dashboard", "總覽"],
+      ["platforms", "平台登入"],
       ["social", "貼文排程"],
       ["tasks", "任務分工"],
       ["sources", "資料源"],
@@ -348,7 +394,8 @@
       ["safety", "安全規則"],
     ];
 
-    const state = {
+    const storageKey = "x23_ops_preview_state";
+    const defaultState = {
       kpis: [
         ["示範營收", "NT$28,200"],
         ["示範訂單", "6"],
@@ -415,13 +462,52 @@
         ["DEMO-ORDER-002", "官網", "X23 + 麥克風", "1", "待補資料", "地址問題"],
         ["DEMO-ORDER-003", "寄賣", "X23 奧丁之聲", "2", "已出貨", "正常"],
       ],
+      platforms: [
+        ["蝦皮賣家中心", "https://seller.shopee.tw/", "訂單、商品、站內廣告、營運表現", "每天回填銷售額、訂單、訪客、廣告餘額"],
+        ["Momo 廠商後台", "https://vendor.momoshop.com.tw/", "銷售、庫存、商品審核", "每週匯出銷售與庫存"],
+        ["PChome 供應商平台", "https://supplier.pchome.com.tw/", "商品、訂單、庫存", "每週檢查商品與訂單"],
+        ["Meta Ads Manager", "https://business.facebook.com/adsmanager", "FB / IG 廣告活動、素材成效", "每週匯出活動與素材報表"],
+        ["Instagram", "https://www.instagram.com/", "貼文、限動、私訊", "發布排程與自動回覆檢查"],
+      ],
+      shopeeMetrics: [
+        ["2026-04-27", "NT$6,890", "1", "117", "141", "0.71%", "NT$2,022", "10.56", "從截圖回填的示範數字"],
+      ],
     };
+
+    let state = loadState();
 
     function esc(value) {
       return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
     }
     function td(value) { return `<td>${esc(value)}</td>`; }
     function rows(items) { return items.map(item => `<tr>${item.map(td).join("")}</tr>`).join(""); }
+    function cloneDefaultState() { return JSON.parse(JSON.stringify(defaultState)); }
+    function loadState() {
+      const fresh = cloneDefaultState();
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return fresh;
+      try {
+        return { ...fresh, ...JSON.parse(raw) };
+      } catch (error) {
+        return fresh;
+      }
+    }
+    function saveState() {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+    function rerender(id = location.hash.replace("#", "") || "dashboard") {
+      renderAll();
+      show(id);
+    }
+    function setSavedNote(id, message) {
+      const node = document.getElementById(id);
+      if (!node) return;
+      node.textContent = message;
+      window.setTimeout(() => {
+        const latest = document.getElementById(id);
+        if (latest && latest.textContent === message) latest.textContent = "";
+      }, 2200);
+    }
 
     function show(id) {
       document.querySelectorAll(".section").forEach(section => section.classList.toggle("active", section.id === id));
@@ -456,31 +542,162 @@
       `;
     }
 
+    function renderPlatforms() {
+      const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      const platformCards = state.platforms.map(platform => `
+        <div class="panel">
+          <h3>${esc(platform[0])}</h3>
+          <p class="muted">${esc(platform[2])}</p>
+          <div class="actions" style="margin-top:10px">
+            <button class="action-button link" type="button" onclick='openPlatform(${JSON.stringify(platform[1])})'>開後台</button>
+            <span class="badge">${esc(platform[3])}</span>
+          </div>
+        </div>
+      `).join("");
+      document.getElementById("platforms").innerHTML = `
+        <div class="grid two">
+          <div class="panel">
+            <h2>平台登入入口</h2>
+            <p class="muted">你在原本平台自己登入；中台只記錄任務、回填數字、判讀結果，不保存平台密碼。</p>
+            <div class="notice">蝦皮、Momo、PChome、Meta、IG 的退款、改價、上架、加預算都要平皓確認後才執行。</div>
+          </div>
+          <div class="panel">
+            <h2>我可以代管的範圍</h2>
+            <div class="chips">
+              ${["每天看銷售", "整理廣告成效", "排貼文", "抓缺素材", "提醒出貨", "列高風險待確認"].map(x => `<span class="chip">${esc(x)}</span>`).join("")}
+            </div>
+          </div>
+        </div>
+        <div class="grid three" style="margin-top:12px">${platformCards}</div>
+        <div class="panel" style="margin-top:12px">
+          <h2>蝦皮每日快速回填</h2>
+          <p class="muted">你現在截圖裡看到的銷售額、訂單、訪客、商品點擊、轉換率、廣告餘額都可以先手動回填；正式版再接報表上傳或 API。</p>
+          <form id="shopeeMetricForm" class="mini-input wide" onsubmit="saveShopeeMetric(event)">
+            <div><label>日期</label><input name="date" type="date" value="${esc(today)}" required></div>
+            <div><label>已售出</label><input name="amount" placeholder="NT$6,890"></div>
+            <div><label>訂單</label><input name="orders" inputmode="numeric" placeholder="1"></div>
+            <div><label>不重複訪客</label><input name="visitors" inputmode="numeric" placeholder="117"></div>
+            <div><label>商品點擊數</label><input name="clicks" inputmode="numeric" placeholder="141"></div>
+            <div><label>訂單轉換率</label><input name="conversion" placeholder="0.71%"></div>
+            <div><label>廣告餘額</label><input name="adBalance" placeholder="NT$2,022"></div>
+            <div><label>投入產出比</label><input name="roas" placeholder="10.56"></div>
+            <div class="field-wide"><label>備註</label><input name="notes" placeholder="例如：截圖回填、廣告建議、異常原因"></div>
+            <div><button class="action-button" type="submit">存入蝦皮紀錄</button></div>
+          </form>
+          <div id="shopeeSavedNote" class="saved-note"></div>
+        </div>
+        <div class="panel" style="margin-top:12px">
+          <div class="actions" style="justify-content:space-between; align-items:center">
+            <h2 style="margin:0">蝦皮回填紀錄</h2>
+            <button class="action-button small danger" type="button" onclick="clearShopeeMetrics()">清空紀錄</button>
+          </div>
+          <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>日期</th><th>已售出</th><th>訂單</th><th>訪客</th><th>商品點擊</th><th>轉換率</th><th>廣告餘額</th><th>ROAS</th><th>備註</th></tr></thead><tbody>${rows(state.shopeeMetrics)}</tbody></table></div>
+        </div>
+      `;
+    }
+
+    function openPlatform(url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    function saveShopeeMetric(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const row = [
+        data.get("date") || "",
+        data.get("amount") || "",
+        data.get("orders") || "",
+        data.get("visitors") || "",
+        data.get("clicks") || "",
+        data.get("conversion") || "",
+        data.get("adBalance") || "",
+        data.get("roas") || "",
+        data.get("notes") || "",
+      ].map(value => String(value).trim());
+      state.shopeeMetrics.unshift(row);
+      state.shopeeMetrics = state.shopeeMetrics.slice(0, 60);
+      if (row[1]) state.kpis[0][1] = row[1];
+      if (row[2]) state.kpis[1][1] = row[2];
+      if (row[7]) state.kpis[4][1] = row[7];
+      const salesSource = state.sources.find(source => source[0] === "銷售報表");
+      if (salesSource) salesSource[2] = "已回填";
+      const shopeeTask = state.tasks.find(task => task[1].includes("蝦皮近 30 天"));
+      if (shopeeTask) shopeeTask[5] = "已回填";
+      saveState();
+      rerender("platforms");
+      setSavedNote("shopeeSavedNote", "已存入蝦皮回填紀錄，總覽 KPI 也同步更新。");
+    }
+
+    function clearShopeeMetrics() {
+      if (!confirm("確定清空蝦皮回填紀錄？這只會清掉本機預覽資料。")) return;
+      state.shopeeMetrics = [];
+      saveState();
+      rerender("platforms");
+    }
+
     function renderSocial() {
       document.getElementById("social").innerHTML = `
         <div class="grid two">
           <div class="panel">
             <h2>7 天貼文排程</h2>
-            <p class="muted">妹妹可以看這裡知道每天要準備什麼素材、哪個頻道要發、目前卡在哪裡。</p>
+            <p class="muted">妹妹可以看這裡知道每天要準備什麼素材、哪個頻道要發、目前卡在哪裡；現在可以直接新增、標記已排程。</p>
           </div>
           <div class="panel">
-            <h2>預覽版表單</h2>
-            <div class="notice">這裡只展示表單樣子，不能儲存。正式版會接資料庫與權限。</div>
+            <h2>IG / FB 自動回覆方向</h2>
+            <div class="notice">留言關鍵字先用「X23」「露營音響」「購買連結」做分流；真正回覆內容上線前仍要確認平台規範與文案。</div>
           </div>
         </div>
         <div class="panel" style="margin-top:12px">
-          <div class="preview-form">
-            <div><label>日期</label><input disabled value="2026-04-28"></div>
-            <div><label>頻道</label><select disabled><option>IG Reels</option></select></div>
-            <div><label>主題</label><input disabled value="X23 戶外派對短影音"></div>
-            <div><button class="fake-button">預覽不可儲存</button></div>
-          </div>
+          <h2>新增貼文</h2>
+          <form class="preview-form" onsubmit="savePost(event)">
+            <div><label>日期</label><input name="date" placeholder="Day ${state.posts.length + 1}" required></div>
+            <div><label>頻道</label><select name="channel"><option>IG Reels / FB Reels</option><option>IG / FB 圖文</option><option>IG 限動</option><option>Threads / FB</option><option>蝦皮動態</option></select></div>
+            <div><label>主題</label><input name="theme" placeholder="X23 戶外派對短影音" required></div>
+            <div><label>格式</label><select name="format"><option>15 秒短影音</option><option>圖文輪播</option><option>短文</option><option>FAQ 圖文</option><option>限動互動</option></select></div>
+            <div><label>狀態</label><select name="status"><option>草稿</option><option>缺素材</option><option>待授權確認</option><option>待排程</option><option>已排程</option></select></div>
+            <div><label>CTA</label><input name="cta" placeholder="私訊 X23 拿購買連結"></div>
+            <div><button class="action-button" type="submit">新增貼文</button></div>
+          </form>
+          <div id="postSavedNote" class="saved-note"></div>
         </div>
         <div class="panel" style="margin-top:12px">
           <h2>貼文表</h2>
-          <div class="table-wrap"><table><thead><tr><th>日期</th><th>頻道</th><th>主題</th><th>格式</th><th>狀態</th><th>CTA</th></tr></thead><tbody>${rows(state.posts)}</tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>日期</th><th>頻道</th><th>主題</th><th>格式</th><th>狀態</th><th>CTA</th><th>操作</th></tr></thead><tbody>
+            ${state.posts.map((post, index) => `<tr>${post.map(td).join("")}<td><div class="table-actions"><button class="action-button small" type="button" onclick="setPostStatus(${index}, '已排程')">排程</button><button class="action-button small warn" type="button" onclick="setPostStatus(${index}, '待授權確認')">確認</button><button class="action-button small danger" type="button" onclick="removePost(${index})">刪除</button></div></td></tr>`).join("")}
+          </tbody></table></div>
         </div>
       `;
+    }
+
+    function savePost(event) {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      state.posts.push([
+        data.get("date"),
+        data.get("channel"),
+        data.get("theme"),
+        data.get("format"),
+        data.get("status"),
+        data.get("cta"),
+      ].map(value => String(value || "").trim()));
+      saveState();
+      rerender("social");
+      setSavedNote("postSavedNote", "已新增貼文排程。");
+    }
+
+    function setPostStatus(index, status) {
+      if (!state.posts[index]) return;
+      state.posts[index][4] = status;
+      saveState();
+      rerender("social");
+    }
+
+    function removePost(index) {
+      if (!state.posts[index]) return;
+      state.posts.splice(index, 1);
+      saveState();
+      rerender("social");
     }
 
     function renderTasks() {
@@ -488,16 +705,58 @@
         <div class="panel">
           <h2>任務分工</h2>
           <div class="notice">Agent 做整理、分析、文案與提醒；人工做登入、出貨、退款、改價、預算核准。</div>
-          <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>優先</th><th>任務</th><th>分類</th><th>負責</th><th>期限</th><th>狀態</th></tr></thead><tbody>${rows(state.tasks)}</tbody></table></div>
+          <form class="preview-form" style="margin-top:12px" onsubmit="saveTask(event)">
+            <div><label>優先</label><select name="priority"><option>P0</option><option>P1</option><option>P2</option></select></div>
+            <div><label>任務</label><input name="task" placeholder="例如：匯出今日蝦皮廣告報表" required></div>
+            <div><label>分類</label><select name="category"><option>數據</option><option>廣告</option><option>素材</option><option>社群</option><option>出貨</option><option>KOL</option></select></div>
+            <div><label>負責</label><select name="owner"><option>人工</option><option>Agent 1</option><option>Agent 2</option><option>Agent 3</option><option>Agent 4</option></select></div>
+            <div><label>期限</label><input name="due" placeholder="今天 / 明天 / 本週"></div>
+            <div><label>狀態</label><select name="status"><option>待處理</option><option>缺資料</option><option>草稿</option><option>待確認</option><option>進行中</option></select></div>
+            <div><button class="action-button" type="submit">新增任務</button></div>
+          </form>
+          <div id="taskSavedNote" class="saved-note"></div>
+          <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>優先</th><th>任務</th><th>分類</th><th>負責</th><th>期限</th><th>狀態</th><th>操作</th></tr></thead><tbody>
+            ${state.tasks.map((task, index) => `<tr><td class="${task[0] === "P0" ? "p0" : task[0] === "P1" ? "p1" : ""}">${esc(task[0])}</td>${task.slice(1).map(td).join("")}<td><div class="table-actions"><button class="action-button small" type="button" onclick="setTaskStatus(${index}, '完成')">完成</button><button class="action-button small warn" type="button" onclick="setTaskStatus(${index}, '待平皓確認')">交確認</button><button class="action-button small danger" type="button" onclick="removeTask(${index})">刪除</button></div></td></tr>`).join("")}
+          </tbody></table></div>
         </div>
       `;
+    }
+
+    function saveTask(event) {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      state.tasks.push([
+        data.get("priority"),
+        data.get("task"),
+        data.get("category"),
+        data.get("owner"),
+        data.get("due"),
+        data.get("status"),
+      ].map(value => String(value || "").trim()));
+      saveState();
+      rerender("tasks");
+      setSavedNote("taskSavedNote", "已新增任務。");
+    }
+
+    function setTaskStatus(index, status) {
+      if (!state.tasks[index]) return;
+      state.tasks[index][5] = status;
+      saveState();
+      rerender("tasks");
+    }
+
+    function removeTask(index) {
+      if (!state.tasks[index]) return;
+      state.tasks.splice(index, 1);
+      saveState();
+      rerender("tasks");
     }
 
     function renderSources() {
       document.getElementById("sources").innerHTML = `
         <div class="panel">
           <h2>資料源與缺口</h2>
-          <p class="muted">正式營運時，最重要的是每天有銷售報表、廣告報表、庫存/出貨資料。預覽版只示範流程，不放真實連結。</p>
+          <p class="muted">正式營運時，最重要的是每天有銷售報表、廣告報表、庫存/出貨資料。預覽版先做平台跳轉與手動回填，不存真實登入資料。</p>
           <div class="table-wrap"><table><thead><tr><th>來源</th><th>類型</th><th>狀態</th><th>用途</th></tr></thead><tbody>${rows(state.sources)}</tbody></table></div>
         </div>
       `;
@@ -521,9 +780,18 @@
         </div>
         <div class="panel" style="margin-top:12px">
           <h2>廣告素材追蹤</h2>
-          <div class="table-wrap"><table><thead><tr><th>素材/關鍵字</th><th>平台</th><th>狀態</th><th>判讀方式</th></tr></thead><tbody>${rows(state.ads)}</tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>素材/關鍵字</th><th>平台</th><th>狀態</th><th>判讀方式</th><th>操作</th></tr></thead><tbody>
+            ${state.ads.map((ad, index) => `<tr>${ad.map(td).join("")}<td><div class="table-actions"><button class="action-button small" type="button" onclick="setAdStatus(${index}, '加碼候選')">加碼</button><button class="action-button small warn" type="button" onclick="setAdStatus(${index}, '觀察中')">觀察</button><button class="action-button small danger" type="button" onclick="setAdStatus(${index}, '停止候選')">停</button></div></td></tr>`).join("")}
+          </tbody></table></div>
         </div>
       `;
+    }
+
+    function setAdStatus(index, status) {
+      if (!state.ads[index]) return;
+      state.ads[index][2] = status;
+      saveState();
+      rerender("ads");
     }
 
     function renderAssets() {
@@ -543,9 +811,18 @@
         <div class="panel">
           <h2>出貨交接</h2>
           <p class="muted">預覽版使用 DEMO 訂單，不含姓名、電話、地址、物流單號。</p>
-          <div class="table-wrap"><table><thead><tr><th>訂單</th><th>平台</th><th>品項</th><th>數量</th><th>狀態</th><th>問題</th></tr></thead><tbody>${rows(state.shipments)}</tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>訂單</th><th>平台</th><th>品項</th><th>數量</th><th>狀態</th><th>問題</th><th>操作</th></tr></thead><tbody>
+            ${state.shipments.map((shipment, index) => `<tr>${shipment.map(td).join("")}<td><div class="table-actions"><button class="action-button small" type="button" onclick="setShipmentStatus(${index}, '已出貨')">已出貨</button><button class="action-button small warn" type="button" onclick="setShipmentStatus(${index}, '待補資料')">補資料</button><button class="action-button small danger" type="button" onclick="setShipmentStatus(${index}, '待平皓確認')">交確認</button></div></td></tr>`).join("")}
+          </tbody></table></div>
         </div>
       `;
+    }
+
+    function setShipmentStatus(index, status) {
+      if (!state.shipments[index]) return;
+      state.shipments[index][4] = status;
+      saveState();
+      rerender("fulfillment");
     }
 
     function renderSafety() {
@@ -560,14 +837,23 @@
           <div class="panel">
             <h2>正式版才會做</h2>
             <p class="muted">登入權限、公司內部網址、雲端資料庫、報表上傳、平台 API/OAuth、操作審核紀錄。</p>
+            <button class="action-button danger" type="button" onclick="resetPreviewData()">重置本機預覽資料</button>
           </div>
         </div>
       `;
     }
 
+    function resetPreviewData() {
+      if (!confirm("確定重置本機預覽資料？貼文、任務與蝦皮回填會回到示範狀態。")) return;
+      localStorage.removeItem(storageKey);
+      state = loadState();
+      renderAll();
+    }
+
     function renderAll() {
       renderNav();
       renderDashboard();
+      renderPlatforms();
       renderSocial();
       renderTasks();
       renderSources();

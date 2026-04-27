@@ -27,7 +27,7 @@ https://github.com/YOUR_ACCOUNT/x23-ops-preview.git
 ## Codex 收到 repo URL 後會做
 
 ```bash
-cd /Users/linyuchen/Desktop/_工作/x23_ops_app
+cd path/to/x23_ops_app
 git remote add origin https://github.com/YOUR_ACCOUNT/x23-ops-preview.git
 git push -u origin main
 ```
@@ -79,4 +79,3 @@ index.html
 - `__pycache__`
 - 真實 CSV / Excel 報表
 - 平台帳密、token、API key
-
