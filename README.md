@@ -31,3 +31,4 @@
 
 若要正式多人使用，需要另外做登入、權限、雲端資料庫與平台授權，不要用這份靜態版承接真實營運。
 
+詳細上線流程請看 [docs/GITHUB_DEPLOY.md](docs/GITHUB_DEPLOY.md)。
