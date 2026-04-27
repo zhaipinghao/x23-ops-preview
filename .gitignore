@@ -42,6 +42,12 @@ data/raw/
 *.numbers
 *.jsonl
 
+# Generated static deploy packages
+netlify_upload/
+netlify_upload.zip
+dist/
+build/
+
 # Internal backend files are not part of the public preview package
 app.py
 

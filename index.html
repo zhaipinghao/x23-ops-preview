@@ -171,8 +171,15 @@
       justify-content: center;
       gap: 6px;
     }
+    a.action-button { text-decoration: none; }
     .fake-button { cursor: not-allowed; opacity: .72; }
-    .action-button:hover, .primary-button:hover, .ghost-button:hover { filter: brightness(1.12); }
+    .action-button:hover, .action-button:focus-visible, .primary-button:hover, .primary-button:focus-visible, .ghost-button:hover, .ghost-button:focus-visible {
+      filter: brightness(1.12);
+    }
+    .action-button:focus-visible, .primary-button:focus-visible, .ghost-button:focus-visible {
+      outline: 2px solid rgba(70, 213, 202, .75);
+      outline-offset: 2px;
+    }
     .action-button.small {
       min-height: 30px;
       padding: 5px 8px;
@@ -230,6 +237,21 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+    }
+    .platform-url {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .platform-note {
+      min-height: 18px;
+      margin-top: 8px;
+      color: var(--green);
+      font-size: 12px;
     }
     .status-dot {
       display: inline-flex;
@@ -435,7 +457,10 @@
       ["safety", "安全規則"],
     ];
 
-    const storageKey = "x23_ops_preview_state";
+    const previewStateSchemaVersion = 2;
+    const storageKey = `x23_ops_preview_state_v${previewStateSchemaVersion}`;
+    const legacyStorageKeys = ["x23_ops_preview_state"];
+    const persistedStateKeys = ["kpis", "tasks", "posts", "sources", "ads", "shipments", "shopeeMetrics"];
     const defaultState = {
       kpis: [
         ["示範營收", "NT$28,200"],
@@ -535,21 +560,37 @@
     function td(value) { return `<td>${esc(value)}</td>`; }
     function rows(items) { return items.map(item => `<tr>${item.map(td).join("")}</tr>`).join(""); }
     function cloneDefaultState() { return JSON.parse(JSON.stringify(defaultState)); }
+    function safeUrl(value) {
+      try {
+        const url = new URL(String(value || "").trim(), window.location.href);
+        if (url.protocol === "http:" || url.protocol === "https:") return url.href;
+      } catch (error) {}
+      return "#";
+    }
     function loadState() {
       const fresh = cloneDefaultState();
       const raw = localStorage.getItem(storageKey);
       if (!raw) return fresh;
       try {
         const saved = JSON.parse(raw);
-        const merged = { ...fresh, ...saved };
-        merged.platforms = fresh.platforms;
+        const merged = cloneDefaultState();
+        persistedStateKeys.forEach(key => {
+          if (Array.isArray(saved[key])) merged[key] = saved[key];
+        });
         return merged;
       } catch (error) {
         return fresh;
       }
     }
     function saveState() {
-      localStorage.setItem(storageKey, JSON.stringify(state));
+      const saved = { schemaVersion: previewStateSchemaVersion };
+      persistedStateKeys.forEach(key => {
+        saved[key] = state[key];
+      });
+      localStorage.setItem(storageKey, JSON.stringify(saved));
+    }
+    function clearStoredPreviewState() {
+      [storageKey, ...legacyStorageKeys].forEach(key => localStorage.removeItem(key));
     }
     function rerender(id = location.hash.replace("#", "") || "dashboard") {
       renderAll();
@@ -601,23 +642,29 @@
     function renderPlatforms() {
       const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       const groups = ["官網", "銷售通路", "廣告社群", "部署"];
-      const platformCard = platform => `
-        <div class="panel workbench-card">
-          <h3>${esc(platform[0])}<span class="status-dot">${esc(platform[5] || "已放入口")}</span></h3>
-          <p class="muted">${esc(platform[2])}</p>
-          <div class="actions" style="margin-top:10px">
-            <button class="action-button link" type="button" onclick='openPlatform(${JSON.stringify(platform[1])})'>開啟</button>
-            <span class="badge">${esc(platform[3])}</span>
+      const platformCard = (platform, index) => {
+        const href = safeUrl(platform[1]);
+        return `
+          <div class="panel workbench-card">
+            <h3>${esc(platform[0])}<span class="status-dot">${esc(platform[5] || "已放入口")}</span></h3>
+            <p class="muted">${esc(platform[2])}</p>
+            <div class="actions" style="margin-top:10px">
+              <a class="action-button link" href="${esc(href)}" target="_blank" rel="noopener noreferrer" onclick="markPlatformOpened(${index})">開啟新分頁</a>
+              <button class="action-button small" type="button" onclick="copyPlatformUrl(${index})">複製連結</button>
+              <span class="badge">${esc(platform[3])}</span>
+            </div>
+            <a class="platform-url" id="platformUrl${index}" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(href)}</a>
+            <div class="platform-note" id="platformNote${index}" aria-live="polite"></div>
           </div>
-        </div>
-      `;
+        `;
+      };
       const platformGroups = groups.map(group => `
         <div class="workbench-group">
           <div class="workbench-group-title">
             <h2>${esc(group)}</h2>
             <span class="badge">${state.platforms.filter(platform => platform[4] === group).length} 個入口</span>
           </div>
-          <div class="grid three">${state.platforms.filter(platform => platform[4] === group).map(platformCard).join("")}</div>
+          <div class="grid three">${state.platforms.map((platform, index) => ({ platform, index })).filter(item => item.platform[4] === group).map(item => platformCard(item.platform, item.index)).join("")}</div>
         </div>
       `).join("");
       document.getElementById("platforms").innerHTML = `
@@ -665,8 +712,66 @@
       `;
     }
 
-    function openPlatform(url) {
-      window.open(url, "_blank", "noopener,noreferrer");
+    function setPlatformNote(index, message) {
+      setSavedNote(`platformNote${index}`, message);
+    }
+
+    function markPlatformOpened(index) {
+      setPlatformNote(index, "已送出開啟新分頁；如果瀏覽器擋住，請按複製連結。");
+    }
+
+    async function writeClipboardText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (error) {
+          // Fall back for file://, localhost, and restricted webviews that expose Clipboard API but reject writes.
+        }
+      }
+      const input = document.createElement("textarea");
+      input.value = text;
+      input.setAttribute("readonly", "");
+      input.style.position = "fixed";
+      input.style.left = "-9999px";
+      input.style.top = "0";
+      document.body.appendChild(input);
+      input.focus();
+      input.select();
+      input.setSelectionRange(0, input.value.length);
+      const copied = document.execCommand && document.execCommand("copy");
+      input.remove();
+      return Boolean(copied);
+    }
+
+    function selectPlatformUrl(index) {
+      const node = document.getElementById(`platformUrl${index}`);
+      if (!node || !window.getSelection) return false;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      node.focus();
+      return true;
+    }
+
+    async function copyPlatformUrl(index) {
+      const platform = state.platforms[index];
+      if (!platform) return;
+      const url = safeUrl(platform[1]);
+      if (url === "#") {
+        setPlatformNote(index, "此入口網址格式不正確，請先檢查預覽資料。");
+        return;
+      }
+      try {
+        const copied = await writeClipboardText(url);
+        if (!copied) throw new Error("copy command was not accepted");
+        setPlatformNote(index, "連結已複製，可以貼到瀏覽器開啟。");
+      } catch (error) {
+        const selected = selectPlatformUrl(index);
+        setPlatformNote(index, selected ? "自動複製被瀏覽器擋住，已選取網址，請按 Command+C 複製。" : "複製失敗，請直接選取下方網址。");
+      }
     }
 
     function saveShopeeMetric(event) {
@@ -764,6 +869,7 @@
 
     function removePost(index) {
       if (!state.posts[index]) return;
+      if (!confirm("確定刪除這筆貼文排程？這只會刪除本機預覽資料。")) return;
       state.posts.splice(index, 1);
       saveState();
       rerender("social");
@@ -816,6 +922,7 @@
 
     function removeTask(index) {
       if (!state.tasks[index]) return;
+      if (!confirm("確定刪除這筆任務？這只會刪除本機預覽資料。")) return;
       state.tasks.splice(index, 1);
       saveState();
       rerender("tasks");
@@ -914,7 +1021,7 @@
 
     function resetPreviewData() {
       if (!confirm("確定重置本機預覽資料？貼文、任務與蝦皮回填會回到示範狀態。")) return;
-      localStorage.removeItem(storageKey);
+      clearStoredPreviewState();
       state = loadState();
       renderAll();
     }

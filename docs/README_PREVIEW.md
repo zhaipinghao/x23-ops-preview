@@ -319,12 +319,14 @@ window.PREVIEW_DATA = {
 
 - [ ] 沒有修改 `app.py`
 - [ ] 沒有提交 `x23_ops.sqlite3`
+- [ ] 沒有提交 `netlify_upload/`、`netlify_upload.zip`、`dist/`、`build/` 這類部署產物
 - [ ] 沒有本機絕對路徑
 - [ ] 沒有真實帳號、密碼 reference；平台入口只允許公開登入網址
 - [ ] 沒有真實訂單、電話、地址、物流單號
 - [ ] 沒有真實 KOL handle、報價或 DM
 - [ ] 沒有未授權人物照、影片、評價截圖
 - [ ] 互動按鈕最多只寫入瀏覽器本機 `localStorage`，不會傳送外部平台
+- [ ] `localStorage` 使用版本化 key，且不保存平台入口 URL、平台清單或部署資料
 - [ ] GitHub Pages 首頁能直接開啟，不需要 Python server
 - [ ] 妹妹看首頁 30 秒內能知道：這是 X23 營運中台的展示版
 

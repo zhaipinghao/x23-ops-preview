@@ -6,6 +6,7 @@
 
 - 本機預覽：直接開 `index.html`
 - GitHub Pages 上線後：直接開網站網址，例如 `https://你的帳號.github.io/x23-ops-preview/`
+- Netlify 手動預覽：用 repository root 部署，或用臨時產出的 `netlify_upload.zip` 上傳；部署包是產物，不要 commit 進 repo。
 
 這是給內部夥伴快速理解流程的靜態預覽版，不是正式後台。
 
@@ -37,5 +38,11 @@
 建議將 GitHub Pages 設為從 repository root 發布，入口檔案為 `index.html`。
 
 若要正式多人使用，需要另外做登入、權限、雲端資料庫與平台授權，不要用這份靜態版承接真實營運。
+
+## 本機狀態
+
+預覽版只把示範互動資料存在瀏覽器 `localStorage`，平台入口 URL 與部署入口資料永遠以目前 `index.html` 為準，避免舊瀏覽器資料蓋掉新入口。
+
+如果切換新版後畫面怪怪的，請到「安全規則」點「重置本機預覽資料」；它只會清掉本機展示資料，不會碰任何平台後台。
 
 如果看不懂 GitHub 文件，請忽略 `docs` 資料夾；只要把 GitHub Pages 網址丟給妹妹就好。

@@ -6,7 +6,7 @@
 
 - 只能展示頁面導覽、下單/任務/後台等流程概念。
 - 可放公開平台登入網址作為跳轉入口，但不代登入、不授權、不寫入外部服務。
-- 可使用瀏覽器本機 `localStorage` 儲存示範互動狀態。
+- 可使用瀏覽器本機 `localStorage` 儲存示範互動狀態；入口 URL、平台清單與部署資料不可依賴 `localStorage`。
 - 不儲存、不提交、不顯示任何平台帳號、密碼、API Key、Cookie 或 Token。
 - 不包含正式 SQLite 資料庫、報表原始檔、客戶資料或營運匯出檔。
 
@@ -24,6 +24,8 @@
 3. 搜尋敏感字串，例如 `password`、`token`、`api_key`、`secret`、`sqlite`。
 4. 確認預覽資料為假資料或範例資料，不能包含真實客戶或平台資訊。
 5. 確認 GitHub Pages 只部署靜態檔案；若需要後端、登入或資料庫，應改用正式伺服器環境。
+6. 確認 `netlify_upload/`、`netlify_upload.zip`、`dist/`、`build/` 只是本機部署產物，不會出現在 `git ls-files`。
+7. 確認 `localStorage` 使用版本化 key，且只保存示範互動資料；平台入口清單要由目前 `index.html` 重新載入。
 
 ## 備註
 

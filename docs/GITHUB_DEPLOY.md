@@ -57,6 +57,7 @@ https://YOUR_ACCOUNT.github.io/x23-ops-preview/
 
 ```bash
 git ls-files
+git status --short
 ```
 
 應該只看到：
@@ -77,5 +78,19 @@ index.html
 - `app.py`
 - `x23_ops.sqlite3`
 - `__pycache__`
+- `netlify_upload/`
+- `netlify_upload.zip`
+- `dist/` 或 `build/` 這類本機部署產物
 - 真實 CSV / Excel 報表
 - 平台帳密、token、API key
+
+如果 `git status --short` 看到 `?? netlify_upload/` 或 `?? netlify_upload.zip`，代表只是本機部署包；確認 `.gitignore` 有排除後，不要把它們 commit。
+
+## Netlify 手動預覽
+
+如果要用 Netlify Drop 或手動上傳：
+
+1. 只把公開靜態檔放進部署包：`index.html`、`.nojekyll`、`README.md`。
+2. 不要把整個工作目錄拖上去，避免帶到 `app.py`、`x23_ops.sqlite3`、`__pycache__` 或本機報表。
+3. 若重新產生 `netlify_upload/` 或 `netlify_upload.zip`，產物只供上傳，不納入 Git。
+4. 上傳後先開 Netlify preview，確認「平台登入」入口可開新分頁，也可複製連結。
