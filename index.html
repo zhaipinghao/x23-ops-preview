@@ -617,9 +617,9 @@
       ],
       platforms: [
         ["WACA 商店後台", "https://admin.waca.net/index", "正式官網訂單、商品、商店設定", "每日看訂單與商品狀態", "官網", "已登入"],
-        ["WACA SSO 登入", "https://sso.waca.net/auth/sign-in", "WACA 統一登入入口", "後台登出或換帳號時使用", "官網", "已放入口"],
-        ["WACA Facebook 串接", "https://admin.waca.net/market/FB", "Facebook Business Extension / Pixel / CAPI", "已串接，後續只檢查狀態", "官網", "已串接"],
-        ["WACA Google 追蹤", "https://admin.waca.net/market/trace", "GA4、Google Ads 再行銷、GTM、Search Console", "AW-450767599 已在 WACA", "官網", "已串接"],
+        ["WACA SSO 登入", "https://sso.waca.net/auth/sign-in", "WACA 統一登入入口", "後台登出或換帳號時使用", "低頻串接", "已放入口"],
+        ["WACA Facebook 串接", "https://admin.waca.net/market/FB", "Facebook Business Extension / Pixel / CAPI", "已串接，後續只檢查狀態", "低頻串接", "已串接"],
+        ["WACA Google 追蹤", "https://admin.waca.net/market/trace", "GA4、Google Ads 再行銷、GTM、Search Console", "AW-450767599 已在 WACA", "低頻串接", "已串接"],
         ["正式網站", "https://94monster.com/", "前台官網與購買入口", "檢查活動頁、價格、CTA", "官網", "已上線"],
         ["1shop 後台", "https://admin.1shop.tw/login", "一頁購物、活動頁、短鏈成交頁", "需要時登入檢查活動", "銷售通路", "已放入口"],
         ["蝦皮賣家中心", "https://seller.shopee.tw/", "訂單、商品、站內廣告、營運表現", "每天回填銷售額、訂單、訪客、廣告餘額", "銷售通路", "已登入"],
@@ -631,9 +631,9 @@
         ["Instagram", "https://www.instagram.com/94monster/", "IG 貼文、Reels、限動、私訊", "發布排程與自動回覆檢查", "廣告社群", "已放入口"],
         ["Google Ads", "https://ads.google.com/aw/overview", "Google 廣告活動與轉換", "看活動、轉換、費用", "廣告社群", "已放入口"],
         ["Google Analytics", "https://analytics.google.com/", "GA4 流量與轉換事件", "看來源、商品頁、購買事件", "廣告社群", "已放入口"],
-        ["Google Tag Manager", "https://tagmanager.google.com/", "GTM 容器與追蹤碼", "只檢查，不亂發布版本", "廣告社群", "已放入口"],
+        ["Google Tag Manager", "https://tagmanager.google.com/", "GTM 容器與追蹤碼", "只檢查，不亂發布版本", "低頻串接", "已放入口"],
         ["LINE 官方帳號", "https://manager.line.biz/", "LINE OA 訊息、圖文選單、自動回覆", "先登入檢查，不直接送出群發", "金流客服", "已放入口"],
-        ["LINE Developers", "https://developers.line.biz/console/", "Messaging API、Login、Webhook 設定", "只檢查設定，改 webhook 前先確認", "金流客服", "已放入口"],
+        ["LINE Developers", "https://developers.line.biz/console/", "Messaging API、Login、Webhook 設定", "只檢查設定，改 webhook 前先確認", "低頻串接", "已放入口"],
         ["PayNow", "https://www.paynow.com.tw/", "金流、付款、交易查詢", "查款與測試流程，退款前要確認", "金流客服", "已放入口"],
         ["Google Drive", "https://drive.google.com/drive/my-drive", "素材、報表、公司雲端資料夾", "整理素材與匯出報表", "資料工具", "已放入口"],
         ["Google Sheets", "https://docs.google.com/spreadsheets/u/0/", "電商紀錄、報表、回填表", "看銷售紀錄與每日回填", "資料工具", "已放入口"],
@@ -810,7 +810,7 @@
 
     function renderPlatforms() {
       const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-      const groups = ["官網", "銷售通路", "廣告社群", "金流客服", "資料工具", "部署"];
+      const groups = ["官網", "銷售通路", "廣告社群", "金流客服", "資料工具", "部署", "低頻串接"];
       const platformCard = (platform, index) => {
         const href = safeUrl(platform[1]);
         const dailyLogin = isDailyLoginPlatform(platform);
@@ -852,7 +852,7 @@
         <div class="grid two">
           <div class="panel workbench-hero">
             <h2>X23 登入工作台</h2>
-            <p class="muted">裡面已經放好所有入口：WACA、1shop、蝦皮、Momo、PChome、Meta、Google、LINE、PayNow、Notion、GitHub、Netlify。你可以一個一個點開登入，不用把密碼給我。</p>
+            <p class="muted">裡面已經放好所有入口：WACA、1shop、蝦皮、Momo、PChome、Meta、Google、LINE、PayNow、Notion、GitHub、Netlify。日常會用的放前面，已串接、低頻設定放最後，你不用每天看到它們。</p>
             <div class="notice">我負責跳轉、整理、判讀、填草稿；真正送出發文、授權、加預算、退款、改價前會停下來等你確認。</div>
           </div>
           <div class="panel">
