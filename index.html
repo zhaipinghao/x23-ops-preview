@@ -70,6 +70,82 @@
       background: #1c242c;
       border-color: #2a3440;
     }
+    .side-login {
+      margin-top: 14px;
+      border: 1px solid rgba(70, 213, 202, .38);
+      background: rgba(70, 213, 202, .07);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .side-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .side-login p {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .login-meter {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #0a1014;
+      border: 1px solid rgba(70, 213, 202, .25);
+      margin: 8px 0;
+    }
+    .login-meter span {
+      display: block;
+      height: 100%;
+      width: var(--progress);
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+    }
+    .login-list {
+      display: grid;
+      gap: 6px;
+      margin-top: 9px;
+    }
+    .login-list-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .login-list-item span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .login-state {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(233, 180, 93, .45);
+      color: #ffe1ad;
+      background: rgba(233, 180, 93, .1);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .login-state.done {
+      border-color: rgba(123, 216, 143, .44);
+      color: #bdf4ca;
+      background: rgba(123, 216, 143, .12);
+    }
+    .side-login-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+      margin-top: 10px;
+    }
     main { padding: 20px; width: 100%; max-width: 1480px; }
     header {
       display: flex;
@@ -265,6 +341,16 @@
       font-size: 11px;
       white-space: nowrap;
     }
+    .status-dot.waiting {
+      background: rgba(233, 180, 93, .12);
+      border-color: rgba(233, 180, 93, .45);
+      color: #ffe1ad;
+    }
+    .status-dot.today-ok {
+      background: rgba(70, 213, 202, .13);
+      border-color: rgba(70, 213, 202, .42);
+      color: #bffaf5;
+    }
     .saved-note {
       min-height: 24px;
       color: var(--green);
@@ -404,6 +490,7 @@
         </div>
       </div>
       <nav id="nav"></nav>
+      <div id="sideLoginSummary"></div>
       <div class="notice" style="margin-top:14px">
         預覽版可跳轉平台，但不存帳密、不包含真實訂單與廣告報表。正式操作仍要人工登入與審核。
       </div>
@@ -460,7 +547,7 @@
     const previewStateSchemaVersion = 2;
     const storageKey = `x23_ops_preview_state_v${previewStateSchemaVersion}`;
     const legacyStorageKeys = ["x23_ops_preview_state"];
-    const persistedStateKeys = ["kpis", "tasks", "posts", "sources", "ads", "shipments", "shopeeMetrics"];
+    const persistedStateKeys = ["kpis", "tasks", "posts", "sources", "ads", "shipments", "shopeeMetrics", "loginChecks"];
     const defaultState = {
       kpis: [
         ["示範營收", "NT$28,200"],
@@ -555,12 +642,32 @@
         ["GitHub Pages", "https://zhaipinghao.github.io/x23-ops-preview/", "妹妹看的公開預覽網站", "正式預覽網址", "部署", "已上線"],
         ["Netlify", "https://app.netlify.com/", "網站部署與預覽網址", "給妹妹看公開預覽", "部署", "已放入口"],
       ],
+      loginChecks: [],
       shopeeMetrics: [
         ["2026-04-27", "NT$6,890", "1", "117", "141", "0.71%", "NT$2,022", "10.56", "從截圖回填的示範數字"],
       ],
     };
 
     let state = loadState();
+    const previewUserStorageKey = "x23_preview_user";
+    const dailyLoginNames = [
+      "WACA 商店後台",
+      "1shop 後台",
+      "蝦皮賣家中心",
+      "Momo 廠商後台",
+      "PChome 供應商平台",
+      "Meta Business Suite",
+      "Meta Ads Manager",
+      "Facebook 粉專",
+      "Instagram",
+      "Google Ads",
+      "Google Analytics",
+      "LINE 官方帳號",
+      "PayNow",
+      "Google Drive",
+      "Google Sheets",
+      "Notion",
+    ];
 
     function esc(value) {
       return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
@@ -574,6 +681,24 @@
         if (url.protocol === "http:" || url.protocol === "https:") return url.href;
       } catch (error) {}
       return "#";
+    }
+    function todayKey() {
+      return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    }
+    function isDailyLoginPlatform(platform) {
+      return dailyLoginNames.includes(platform[0]);
+    }
+    function isLoggedToday(platformName) {
+      return Array.isArray(state.loginChecks) && state.loginChecks.some(row => row[0] === platformName && row[1] === todayKey());
+    }
+    function setDailyLogin(platformName, logged) {
+      if (!Array.isArray(state.loginChecks)) state.loginChecks = [];
+      state.loginChecks = state.loginChecks.filter(row => row[0] !== platformName || row[1] !== todayKey());
+      if (logged) state.loginChecks.push([platformName, todayKey()]);
+      saveState();
+    }
+    function dailyLoginPlatforms() {
+      return state.platforms.filter(isDailyLoginPlatform);
     }
     function loadState() {
       const fresh = cloneDefaultState();
@@ -624,6 +749,42 @@
       document.getElementById("nav").innerHTML = tabs.map(([id, label]) => `<button data-id="${id}" onclick="show('${id}')">${label}</button>`).join("");
     }
 
+    function renderSideLoginSummary() {
+      const dailyPlatforms = dailyLoginPlatforms();
+      const waiting = dailyPlatforms.filter(platform => !isLoggedToday(platform[0]));
+      const doneCount = dailyPlatforms.length - waiting.length;
+      const progress = dailyPlatforms.length ? Math.round(doneCount / dailyPlatforms.length * 100) : 0;
+      const waitingList = waiting.slice(0, 5).map(platform => `
+        <div class="login-list-item">
+          <span>${esc(platform[0])}</span>
+          <span class="login-state">待登入</span>
+        </div>
+      `).join("");
+      const doneMessage = `
+        <div class="login-list-item">
+          <span>今日常用後台已確認</span>
+          <span class="login-state done">完成</span>
+        </div>
+      `;
+      const extra = waiting.length > 5 ? `<p>還有 ${waiting.length - 5} 個入口在平台登入頁。</p>` : "";
+      document.getElementById("sideLoginSummary").innerHTML = `
+        <div class="side-login">
+          <div class="side-title">
+            <span>每日登入</span>
+            <span class="login-state ${waiting.length ? "" : "done"}">${doneCount}/${dailyPlatforms.length}</span>
+          </div>
+          <p>同一個 Chrome 保持登入；這裡只記今天狀態，不存任何平台密碼。</p>
+          <div class="login-meter" style="--progress:${progress}%"><span></span></div>
+          <div class="login-list">${waiting.length ? waitingList : doneMessage}</div>
+          ${extra}
+          <div class="side-login-actions">
+            <button class="action-button small link" type="button" onclick="show('platforms')">打開登入工作台</button>
+            <button class="action-button small" type="button" onclick="resetTodayLogins()">重置今日狀態</button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderDashboard() {
       document.getElementById("dashboard").innerHTML = `
         <div class="grid kpis">
@@ -652,13 +813,25 @@
       const groups = ["官網", "銷售通路", "廣告社群", "金流客服", "資料工具", "部署"];
       const platformCard = (platform, index) => {
         const href = safeUrl(platform[1]);
+        const dailyLogin = isDailyLoginPlatform(platform);
+        const loggedToday = isLoggedToday(platform[0]);
+        const loginStatus = dailyLogin ? `
+          <div class="badge-row" style="margin-top:8px">
+            <span class="status-dot ${loggedToday ? "today-ok" : "waiting"}">${loggedToday ? "今日已登入" : "今日待登入"}</span>
+          </div>
+        ` : "";
+        const loginAction = dailyLogin ? `
+          <button class="action-button small ${loggedToday ? "" : "warn"}" type="button" onclick="togglePlatformLogin(${index})">${loggedToday ? "改為需登入" : "今天已登入"}</button>
+        ` : "";
         return `
           <div class="panel workbench-card">
-            <h3>${esc(platform[0])}<span class="status-dot">${esc(platform[5] || "已放入口")}</span></h3>
+            <h3><span>${esc(platform[0])}</span><span class="status-dot">${esc(platform[5] || "已放入口")}</span></h3>
             <p class="muted">${esc(platform[2])}</p>
+            ${loginStatus}
             <div class="actions" style="margin-top:10px">
               <a class="action-button link" href="${esc(href)}" target="_blank" rel="noopener noreferrer" onclick="markPlatformOpened(${index})">開啟新分頁</a>
               <button class="action-button small" type="button" onclick="copyPlatformUrl(${index})">複製連結</button>
+              ${loginAction}
               <span class="badge">${esc(platform[3])}</span>
             </div>
             <a class="platform-url" id="platformUrl${index}" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(href)}</a>
@@ -685,11 +858,12 @@
           <div class="panel">
             <h2>使用方式</h2>
             <div class="workbench-steps">
-              <div>1. 你點入口並自己登入帳號。</div>
-              <div>2. 登完跟我說「好了」。</div>
-              <div>3. 我接手看數據、排任務、做貼文草稿。</div>
-              <div>4. 需要送出或改設定時，我會先問你。</div>
+              <div>1. 每天先從側邊欄打開登入工作台。</div>
+              <div>2. 用同一個 Chrome 分頁登入，讓各平台用自己的 Cookie 記住狀態。</div>
+              <div>3. 登完按「今天已登入」，側邊欄會記錄今日進度。</div>
+              <div>4. 我接手看數據、排任務、做貼文草稿；送出或改設定前仍會先問你。</div>
             </div>
+            <div class="notice" style="margin-top:12px">蝦皮、Meta、Momo 這類平台通常會擋內嵌登入，所以不能真正塞在側邊欄裡一鍵登入；最穩的是跳新分頁登入一次，之後由瀏覽器保持登入。</div>
           </div>
         </div>
         ${platformGroups}
@@ -726,6 +900,23 @@
 
     function markPlatformOpened(index) {
       setPlatformNote(index, "已送出開啟新分頁；如果瀏覽器擋住，請按複製連結。");
+    }
+
+    function togglePlatformLogin(index) {
+      const platform = state.platforms[index];
+      if (!platform) return;
+      const nextLogged = !isLoggedToday(platform[0]);
+      setDailyLogin(platform[0], nextLogged);
+      rerender("platforms");
+      setPlatformNote(index, nextLogged ? "已標記今天登入完成。" : "已改回今日待登入。");
+    }
+
+    function resetTodayLogins() {
+      if (!confirm("確定重置今日登入狀態？這不會登出任何平台，只會清掉這個工作台的今日勾選。")) return;
+      if (!Array.isArray(state.loginChecks)) state.loginChecks = [];
+      state.loginChecks = state.loginChecks.filter(row => row[1] !== todayKey());
+      saveState();
+      rerender(location.hash.replace("#", "") || "dashboard");
     }
 
     async function writeClipboardText(text) {
@@ -1028,7 +1219,7 @@
     }
 
     function resetPreviewData() {
-      if (!confirm("確定重置本機預覽資料？貼文、任務與蝦皮回填會回到示範狀態。")) return;
+      if (!confirm("確定重置本機預覽資料？貼文、任務、蝦皮回填與今日登入勾選會回到示範狀態。")) return;
       clearStoredPreviewState();
       state = loadState();
       renderAll();
@@ -1036,6 +1227,7 @@
 
     function renderAll() {
       renderNav();
+      renderSideLoginSummary();
       renderDashboard();
       renderPlatforms();
       renderSocial();
@@ -1060,8 +1252,9 @@
     }
 
     function setupLogin() {
-      const savedName = sessionStorage.getItem("x23_preview_user");
+      const savedName = localStorage.getItem(previewUserStorageKey) || sessionStorage.getItem(previewUserStorageKey);
       if (savedName) {
+        localStorage.setItem(previewUserStorageKey, savedName);
         unlockPreview(savedName);
         return;
       }
@@ -1070,11 +1263,11 @@
         const name = document.getElementById("loginName").value.trim() || "內部夥伴";
         const code = document.getElementById("loginCode").value.trim();
         if (!code) return;
-        sessionStorage.setItem("x23_preview_user", name);
+        localStorage.setItem(previewUserStorageKey, name);
         unlockPreview(name);
       });
       document.getElementById("previewBypass").addEventListener("click", () => {
-        sessionStorage.setItem("x23_preview_user", "展示模式");
+        localStorage.setItem(previewUserStorageKey, "展示模式");
         unlockPreview("展示模式");
       });
     }
