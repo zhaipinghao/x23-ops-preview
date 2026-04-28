@@ -238,6 +238,13 @@
       justify-content: space-between;
       gap: 8px;
     }
+    .platform-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(112px, max-content));
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
     .platform-url {
       display: block;
       margin-top: 8px;
@@ -368,6 +375,8 @@
       .mini-input.wide { grid-template-columns: 1fr; }
       .field-wide { grid-column: auto; }
       .row { grid-template-columns: 1fr; }
+      .platform-actions { grid-template-columns: 1fr; }
+      .platform-actions .action-button, .platform-actions .badge { width: 100%; }
     }
   </style>
 </head>
@@ -657,8 +666,8 @@
           <div class="panel workbench-card">
             <h3><span>${esc(platform[0])}</span><span class="status-dot">${esc(platform[5] || "已放入口")}</span></h3>
             <p class="muted">${esc(platform[2])}</p>
-            <div class="actions" style="margin-top:10px">
-              <a class="action-button link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">登入後台</a>
+            <div class="platform-actions">
+              <button class="action-button link" type="button" onclick="openPlatformNewTab(${index})">登入後台</button>
               <button class="action-button small" type="button" onclick="openPlatformSameTab(${index})">同頁登入</button>
               <span class="badge">${esc(platform[3])}</span>
             </div>
@@ -734,6 +743,23 @@
         setPlatformNote(index, "此入口網址格式不正確，請先檢查預覽資料。");
         return;
       }
+      window.location.href = url;
+    }
+
+    function openPlatformNewTab(index) {
+      const platform = state.platforms[index];
+      if (!platform) return;
+      const url = safeUrl(platform[1]);
+      if (url === "#") {
+        setPlatformNote(index, "此入口網址格式不正確，請先檢查預覽資料。");
+        return;
+      }
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (opened) {
+        setPlatformNote(index, "已開新分頁；如果沒有看到，請檢查瀏覽器上方或允許彈出視窗。");
+        return;
+      }
+      setPlatformNote(index, "新分頁被擋住，正在改用同頁登入。");
       window.location.href = url;
     }
 
