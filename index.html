@@ -329,6 +329,46 @@
       color: var(--green);
       font-size: 12px;
     }
+    .embed-workspace {
+      margin-top: 12px;
+      border: 1px solid rgba(70, 213, 202, .34);
+      background: #10161b;
+    }
+    .embed-toolbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .embed-toolbar h2 { margin-bottom: 4px; }
+    .embed-frame-wrap {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #070b0f;
+      min-height: 540px;
+    }
+    .embed-frame {
+      display: block;
+      width: 100%;
+      height: 640px;
+      border: 0;
+      background: #fff;
+    }
+    .embed-placeholder {
+      min-height: 540px;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .embed-warning {
+      margin-top: 10px;
+      color: #ffe1ad;
+      font-size: 12px;
+    }
     .status-dot {
       display: inline-flex;
       align-items: center;
@@ -623,7 +663,7 @@
         ["正式網站", "https://94monster.com/", "前台官網與購買入口", "檢查活動頁、價格、CTA", "官網", "已上線"],
         ["1shop 後台", "https://admin.1shop.tw/login", "一頁購物、活動頁、短鏈成交頁", "需要時登入檢查活動", "銷售通路", "已放入口"],
         ["蝦皮賣家中心", "https://seller.shopee.tw/", "訂單、商品、站內廣告、營運表現", "每天回填銷售額、訂單、訪客、廣告餘額", "銷售通路", "已登入"],
-        ["Momo 廠商後台", "https://vendor.momoshop.com.tw/", "銷售、庫存、商品審核", "每週匯出銷售與庫存", "銷售通路", "待登入"],
+        ["Momo SCM 後台", "https://scm.momoshop.com.tw/D1206Servlet.do", "Momo 訂單、商品、庫存與活動後台", "每週匯出銷售與庫存", "銷售通路", "待登入"],
         ["PChome 供應商平台", "https://supplier.pchome.com.tw/", "商品、訂單、庫存", "每週檢查商品與訂單", "銷售通路", "待登入"],
         ["Meta Business Suite", "https://business.facebook.com/latest/home", "FB / IG 內容、排程、收件匣", "排貼文與看互動", "廣告社群", "待登入"],
         ["Meta Ads Manager", "https://business.facebook.com/adsmanager", "FB / IG 廣告活動、素材成效", "每週匯出活動與素材報表", "廣告社群", "待登入"],
@@ -649,12 +689,13 @@
     };
 
     let state = loadState();
+    let embeddedPlatformIndex = -1;
     const previewUserStorageKey = "x23_preview_user";
     const dailyLoginNames = [
       "WACA 商店後台",
       "1shop 後台",
       "蝦皮賣家中心",
-      "Momo 廠商後台",
+      "Momo SCM 後台",
       "PChome 供應商平台",
       "Meta Business Suite",
       "Meta Ads Manager",
@@ -808,13 +849,58 @@
       `;
     }
 
+    function renderPlatformEmbed(platform) {
+      if (!platform) {
+        return `
+          <div class="panel embed-workspace" id="platformEmbedWorkspace">
+            <div class="embed-toolbar">
+              <div>
+                <h2>內建查看區</h2>
+                <p class="muted">按任一平台卡片的「內建查看」，會先在這裡嘗試打開後台。</p>
+              </div>
+            </div>
+            <div class="embed-frame-wrap" style="min-height:190px">
+              <div class="embed-placeholder" style="min-height:190px">
+                <div>
+                  <strong>還沒有選平台</strong>
+                  <p class="muted" style="margin-top:8px">如果平台拒絕被內嵌，這裡可能會空白或顯示拒絕連線；那時請改用「登入後台」開新分頁。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      const href = safeUrl(platform[1]);
+      return `
+        <div class="panel embed-workspace" id="platformEmbedWorkspace">
+          <div class="embed-toolbar">
+            <div>
+              <h2>內建查看：${esc(platform[0])}</h2>
+              <p class="muted">${esc(platform[2])}</p>
+              <div class="embed-warning" id="platformEmbedNote">如果畫面空白、登入後跳不動，或出現拒絕連線，是平台安全限制；請改用新分頁登入。</div>
+            </div>
+            <div class="actions">
+              <button class="action-button small" type="button" onclick="reloadPlatformEmbed()">重新載入</button>
+              <a class="action-button small link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">新分頁登入</a>
+              <button class="action-button small" type="button" onclick="closePlatformEmbed()">收起</button>
+            </div>
+          </div>
+          <div class="embed-frame-wrap">
+            <iframe class="embed-frame" id="platformEmbedFrame" src="${esc(href)}" title="內建查看 ${esc(platform[0])}" loading="lazy"></iframe>
+          </div>
+        </div>
+      `;
+    }
+
     function renderPlatforms() {
       const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
       const groups = ["官網", "銷售通路", "廣告社群", "金流客服", "資料工具", "部署", "低頻串接"];
+      const embeddedPlatform = state.platforms[embeddedPlatformIndex];
       const platformCard = (platform, index) => {
         const href = safeUrl(platform[1]);
         const dailyLogin = isDailyLoginPlatform(platform);
         const loggedToday = isLoggedToday(platform[0]);
+        const isEmbedded = index === embeddedPlatformIndex;
         const loginStatus = dailyLogin ? `
           <div class="badge-row" style="margin-top:8px">
             <span class="status-dot ${loggedToday ? "today-ok" : "waiting"}">${loggedToday ? "今日已登入" : "今日待登入"}</span>
@@ -829,6 +915,7 @@
             <p class="muted">${esc(platform[2])}</p>
             ${loginStatus}
             <div class="actions" style="margin-top:10px">
+              <button class="action-button small ${isEmbedded ? "link" : ""}" type="button" onclick="openPlatformEmbed(${index})">${isEmbedded ? "正在內建查看" : "內建查看"}</button>
               <a class="action-button link" href="${esc(href)}" target="_blank" rel="noopener noreferrer" onclick="markPlatformOpened(${index})">登入後台</a>
               <button class="action-button small" type="button" onclick="openPlatformSameTab(${index})">同頁登入</button>
               <button class="action-button small" type="button" onclick="copyPlatformUrl(${index})">複製連結</button>
@@ -860,13 +947,14 @@
             <h2>使用方式</h2>
             <div class="workbench-steps">
               <div>1. 每天先從側邊欄打開登入工作台。</div>
-              <div>2. 按「登入後台」開新分頁；如果沒反應，就按「同頁登入」。</div>
+              <div>2. 先按「內建查看」在中台裡試開；如果平台拒絕內嵌，再按「登入後台」或「同頁登入」。</div>
               <div>3. 登完回來按「我已登入」，側邊欄會記錄今日進度。</div>
               <div>4. 我接手看數據、排任務、做貼文草稿；送出或改設定前仍會先問你。</div>
             </div>
-            <div class="notice" style="margin-top:12px">蝦皮、Meta、Momo 這類平台通常會擋內嵌登入，所以不能真正塞在側邊欄裡一鍵登入；最穩的是跳新分頁或同頁登入一次，之後由瀏覽器保持登入。</div>
+            <div class="notice" style="margin-top:12px">蝦皮、Meta、Momo 這類平台可能會擋內嵌登入；能內嵌的就在下面看，不能內嵌的就用外部登入，之後由瀏覽器保持登入。</div>
           </div>
         </div>
+        ${renderPlatformEmbed(embeddedPlatform)}
         ${platformGroups}
         <div class="panel" style="margin-top:12px">
           <h2>蝦皮每日快速回填</h2>
@@ -901,6 +989,35 @@
 
     function markPlatformOpened(index) {
       setPlatformNote(index, "已送出開啟新分頁；如果瀏覽器擋住，請按同頁登入或複製連結。");
+    }
+
+    function openPlatformEmbed(index) {
+      const platform = state.platforms[index];
+      if (!platform) return;
+      const url = safeUrl(platform[1]);
+      if (url === "#") {
+        setPlatformNote(index, "此入口網址格式不正確，請先檢查預覽資料。");
+        return;
+      }
+      embeddedPlatformIndex = index;
+      rerender("platforms");
+      window.requestAnimationFrame(() => {
+        const node = document.getElementById("platformEmbedWorkspace");
+        if (node) node.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      setSavedNote("platformEmbedNote", "已在內建查看區嘗試載入。若平台阻擋內嵌，請用新分頁登入。");
+    }
+
+    function closePlatformEmbed() {
+      embeddedPlatformIndex = -1;
+      rerender("platforms");
+    }
+
+    function reloadPlatformEmbed() {
+      const frame = document.getElementById("platformEmbedFrame");
+      if (!frame) return;
+      frame.src = frame.src;
+      setSavedNote("platformEmbedNote", "已重新載入內建查看區。");
     }
 
     function openPlatformSameTab(index) {
