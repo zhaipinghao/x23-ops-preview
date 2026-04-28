@@ -573,7 +573,7 @@
         ["WACA SSO 登入", "https://sso.waca.net/auth/sign-in", "WACA 統一登入入口", "後台登出或換帳號時使用", "低頻串接", "已放入口"],
         ["WACA Facebook 串接", "https://admin.waca.net/market/FB", "Facebook Business Extension / Pixel / CAPI", "已串接，後續只檢查狀態", "低頻串接", "已串接"],
         ["WACA Google 追蹤", "https://admin.waca.net/market/trace", "GA4、Google Ads 再行銷、GTM、Search Console", "AW-450767599 已在 WACA", "低頻串接", "已串接"],
-        ["正式網站", "https://94monster.com/", "前台官網與購買入口", "檢查活動頁、價格、CTA", "官網", "已上線"],
+        ["正式網站", "https://94monster.com/", "前台官網與購買入口", "檢查活動頁、價格、CTA", "部署", "已上線"],
         ["1shop 後台", "https://admin.1shop.tw/login", "一頁購物、活動頁、短鏈成交頁", "需要時登入檢查活動", "銷售通路", "已放入口"],
         ["蝦皮賣家中心", "https://seller.shopee.tw/", "訂單、商品、站內廣告、營運表現", "每天回填銷售額、訂單、訪客、廣告餘額", "銷售通路", "已登入"],
         ["Momo SCM 後台", "https://scm.momoshop.com.tw/D1206Servlet.do", "Momo 訂單、商品、庫存與活動後台", "每週匯出銷售與庫存", "銷售通路", "待登入"],
@@ -727,15 +727,19 @@
           </div>
         `;
       };
-      const platformGroups = groups.map(group => `
-        <div class="workbench-group">
-          <div class="workbench-group-title">
-            <h2>${esc(group)}</h2>
-            <span class="badge">${state.platforms.filter(platform => platform[4] === group).length} 個入口</span>
+      const platformGroups = groups.map(group => {
+        const items = state.platforms.map((platform, index) => ({ platform, index })).filter(item => item.platform[4] === group);
+        if (!items.length) return "";
+        return `
+          <div class="workbench-group">
+            <div class="workbench-group-title">
+              <h2>${esc(group)}</h2>
+              <span class="badge">${items.length} 個入口</span>
+            </div>
+            <div class="grid three">${items.map(item => platformCard(item.platform, item.index)).join("")}</div>
           </div>
-          <div class="grid three">${state.platforms.map((platform, index) => ({ platform, index })).filter(item => item.platform[4] === group).map(item => platformCard(item.platform, item.index)).join("")}</div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
       document.getElementById("platforms").innerHTML = `
         <div class="grid two">
           <div class="panel workbench-hero">
