@@ -829,7 +829,7 @@
             <p class="muted">${esc(platform[2])}</p>
             ${loginStatus}
             <div class="actions" style="margin-top:10px">
-              <a class="action-button link" href="${esc(href)}" target="_blank" rel="noopener noreferrer" onclick="markPlatformOpened(${index})">登入後台</a>
+              <a class="action-button link" href="${esc(href)}" target="_blank" rel="noopener noreferrer">登入後台</a>
               <button class="action-button small" type="button" onclick="openPlatformSameTab(${index})">同頁登入</button>
               ${loginAction}
               <span class="badge">${esc(platform[3])}</span>
@@ -863,7 +863,7 @@
               <div>3. 登完回來按「我已登入」，側邊欄會記錄今日進度。</div>
               <div>4. 如果新分頁被瀏覽器擋住，再按「同頁登入」當備用。</div>
             </div>
-            <div class="notice" style="margin-top:12px">平台登入完成後，Chrome 會用各平台自己的 Cookie 保持登入；這個中台只記錄今日狀態，不保存密碼。</div>
+            <div class="notice" style="margin-top:12px">如果瀏覽器右上角出現彈出視窗被封鎖，請允許這個本機頁面開新分頁；平台登入完成後，Chrome 會用各平台自己的 Cookie 保持登入，這個中台不保存密碼。</div>
           </div>
         </div>
         ${platformGroups}
@@ -896,10 +896,6 @@
 
     function setPlatformNote(index, message) {
       setSavedNote(`platformNote${index}`, message);
-    }
-
-    function markPlatformOpened(index) {
-      setPlatformNote(index, "已在上方多開一個分頁；如果瀏覽器擋住，請按同頁登入。");
     }
 
     function openPlatformSameTab(index) {
