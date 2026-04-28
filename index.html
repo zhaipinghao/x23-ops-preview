@@ -821,7 +821,7 @@
           </div>
         ` : "";
         const loginAction = dailyLogin ? `
-          <button class="action-button small ${loggedToday ? "" : "warn"}" type="button" onclick="togglePlatformLogin(${index})">${loggedToday ? "改為需登入" : "今天已登入"}</button>
+          <button class="action-button small ${loggedToday ? "" : "warn"}" type="button" onclick="togglePlatformLogin(${index})">${loggedToday ? "改回待登入" : "我已登入"}</button>
         ` : "";
         return `
           <div class="panel workbench-card">
@@ -829,7 +829,8 @@
             <p class="muted">${esc(platform[2])}</p>
             ${loginStatus}
             <div class="actions" style="margin-top:10px">
-              <a class="action-button link" href="${esc(href)}" target="_blank" rel="noopener noreferrer" onclick="markPlatformOpened(${index})">開啟新分頁</a>
+              <a class="action-button link" href="${esc(href)}" target="_blank" rel="noopener noreferrer" onclick="markPlatformOpened(${index})">登入後台</a>
+              <button class="action-button small" type="button" onclick="openPlatformSameTab(${index})">同頁登入</button>
               <button class="action-button small" type="button" onclick="copyPlatformUrl(${index})">複製連結</button>
               ${loginAction}
               <span class="badge">${esc(platform[3])}</span>
@@ -859,11 +860,11 @@
             <h2>使用方式</h2>
             <div class="workbench-steps">
               <div>1. 每天先從側邊欄打開登入工作台。</div>
-              <div>2. 用同一個 Chrome 分頁登入，讓各平台用自己的 Cookie 記住狀態。</div>
-              <div>3. 登完按「今天已登入」，側邊欄會記錄今日進度。</div>
+              <div>2. 按「登入後台」開新分頁；如果沒反應，就按「同頁登入」。</div>
+              <div>3. 登完回來按「我已登入」，側邊欄會記錄今日進度。</div>
               <div>4. 我接手看數據、排任務、做貼文草稿；送出或改設定前仍會先問你。</div>
             </div>
-            <div class="notice" style="margin-top:12px">蝦皮、Meta、Momo 這類平台通常會擋內嵌登入，所以不能真正塞在側邊欄裡一鍵登入；最穩的是跳新分頁登入一次，之後由瀏覽器保持登入。</div>
+            <div class="notice" style="margin-top:12px">蝦皮、Meta、Momo 這類平台通常會擋內嵌登入，所以不能真正塞在側邊欄裡一鍵登入；最穩的是跳新分頁或同頁登入一次，之後由瀏覽器保持登入。</div>
           </div>
         </div>
         ${platformGroups}
@@ -899,7 +900,18 @@
     }
 
     function markPlatformOpened(index) {
-      setPlatformNote(index, "已送出開啟新分頁；如果瀏覽器擋住，請按複製連結。");
+      setPlatformNote(index, "已送出開啟新分頁；如果瀏覽器擋住，請按同頁登入或複製連結。");
+    }
+
+    function openPlatformSameTab(index) {
+      const platform = state.platforms[index];
+      if (!platform) return;
+      const url = safeUrl(platform[1]);
+      if (url === "#") {
+        setPlatformNote(index, "此入口網址格式不正確，請先檢查預覽資料。");
+        return;
+      }
+      window.location.href = url;
     }
 
     function togglePlatformLogin(index) {
