@@ -111,6 +111,37 @@
     .kpi strong { display: block; font-size: 22px; margin-top: 6px; }
     .section { display: none; }
     .section.active { display: block; }
+    .welcome-panel {
+      border-color: rgba(70, 213, 202, .44);
+      background:
+        linear-gradient(135deg, rgba(70, 213, 202, .14), rgba(130, 170, 255, .08)),
+        var(--surface);
+      margin-bottom: 12px;
+    }
+    .welcome-panel h2 { font-size: 22px; }
+    .welcome-panel p {
+      color: var(--muted);
+      max-width: 900px;
+    }
+    .welcome-panel .actions { margin-top: 12px; }
+    .handoff-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .handoff-item {
+      border: 1px solid rgba(70, 213, 202, .18);
+      border-radius: 8px;
+      background: rgba(15, 20, 25, .58);
+      padding: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .handoff-item strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
     .notice {
       border: 1px solid rgba(233, 180, 93, .55);
       background: rgba(233, 180, 93, .08);
@@ -634,8 +665,27 @@
       document.getElementById("nav").innerHTML = tabs.map(([id, label]) => `<button data-id="${id}" onclick="show('${id}')">${label}</button>`).join("");
     }
 
+    function previewDisplayName() {
+      return localStorage.getItem(previewUserStorageKey) || sessionStorage.getItem(previewUserStorageKey) || "內部夥伴";
+    }
+
     function renderDashboard() {
+      const name = previewDisplayName();
       document.getElementById("dashboard").innerHTML = `
+        <div class="panel welcome-panel">
+          <h2>${esc(name)}，這是剛剛對話整理好的今日交接</h2>
+          <p>平台入口、Momo / PChome 後台網址、登入按鈕流程已整理；接下來你只要照入口登入、回填數字、確認高風險操作。</p>
+          <div class="handoff-list">
+            <div class="handoff-item"><strong>先開平台</strong>WACA、蝦皮、Momo、PChome、Meta / Google 廣告都集中在「平台登入」。</div>
+            <div class="handoff-item"><strong>每天回填</strong>蝦皮銷售額、訂單、訪客、點擊、轉換率、廣告餘額、ROAS 先手動填，我再幫你判讀。</div>
+            <div class="handoff-item"><strong>需要你確認</strong>真正送出發文、授權、加預算、退款、改價、取消訂單前，我會停下來等你確認。</div>
+          </div>
+          <div class="actions">
+            <button class="action-button link" type="button" onclick="show('platforms')">平台登入</button>
+            <button class="action-button" type="button" onclick="show('social')">貼文排程</button>
+            <button class="action-button" type="button" onclick="show('tasks')">任務分工</button>
+          </div>
+        </div>
         <div class="grid kpis">
           ${state.kpis.map(([label, value]) => `<div class="panel kpi"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join("")}
         </div>
@@ -1032,6 +1082,7 @@
     function unlockPreview(name) {
       const screen = document.getElementById("loginScreen");
       screen.classList.add("hidden");
+      renderDashboard();
       if (name) {
         const badge = document.createElement("span");
         badge.className = "badge";
