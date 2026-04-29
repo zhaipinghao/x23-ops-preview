@@ -491,7 +491,7 @@
       ["social", "貼文排程"],
       ["tasks", "任務分工"],
       ["sources", "資料源"],
-      ["ads", "廣告判讀"],
+      ["ads", "FB 廣告助理"],
       ["assets", "素材庫"],
       ["fulfillment", "出貨交接"],
       ["safety", "安全規則"],
@@ -500,7 +500,7 @@
     const previewStateSchemaVersion = 2;
     const storageKey = `x23_ops_preview_state_v${previewStateSchemaVersion}`;
     const legacyStorageKeys = ["x23_ops_preview_state"];
-    const persistedStateKeys = ["kpis", "tasks", "posts", "sources", "ads", "shipments", "shopeeMetrics"];
+    const persistedStateKeys = ["kpis", "tasks", "posts", "sources", "ads", "fbAdLogs", "shipments", "shopeeMetrics"];
     const defaultState = {
       kpis: [
         ["示範營收", "NT$28,200"],
@@ -550,10 +550,14 @@
         ["專案文件", "Notion / PDF", "已整理", "轉成任務與 SOP"],
       ],
       ads: [
+        ["X23-AI圖片", "Meta Ads", "加碼候選", "AI 作圖素材若 ROAS >= 2.2 且有購買，先加 20% 預算並複製 3 張變體"],
         ["露營情境痛點版", "Meta Ads", "待上線", "CTR > 1.5% 留，CPC > NT$20 停"],
         ["規格信任版", "Meta Ads", "待上線", "主打 150W、防水、認證"],
         ["評價背書版", "Meta Ads", "待授權", "先確認人物/評價可用範圍"],
         ["露營音響關鍵字", "蝦皮站內", "待報表", "看關鍵字 ROAS 決定加碼"],
+      ],
+      fbAdLogs: [
+        ["2026-04-29", "X23-AI圖片", "AI 露營情境圖", "NT$500", "NT$0", "0", "1.8%", "NT$18", "1.4", "多素材", "先做 3-5 張 AI 圖變體，保留原廣告組觀察，不直接大幅加預算。", "從 Meta 截圖建立的示範追蹤"],
       ],
       assets: [
         ["商品 / 情境圖", "官網、蝦皮、Momo、PChome"],
@@ -616,6 +620,35 @@
         if (url.protocol === "http:" || url.protocol === "https:") return url.href;
       } catch (error) {}
       return "#";
+    }
+    function metricNumber(value) {
+      const cleaned = String(value || "").replace(/,/g, "").replace(/NT\\$/gi, "").replace(/%/g, "").trim();
+      const number = Number(cleaned);
+      return Number.isFinite(number) ? number : 0;
+    }
+    function normalizeMoney(value) {
+      const number = metricNumber(value);
+      return number ? `NT$${Math.round(number).toLocaleString("zh-TW")}` : "";
+    }
+    function normalizePercent(value) {
+      const number = metricNumber(value);
+      return number ? `${number}%` : "";
+    }
+    function decideFbAd({ spend, revenue, purchases, ctr, cpc, frequency }) {
+      const roas = spend > 0 ? revenue / spend : 0;
+      if (roas >= 2.2 && purchases >= 1) {
+        return ["加碼候選", "先加 20% 預算上限，同時複製 3 張 AI 圖變體；送出前要平皓確認。"];
+      }
+      if (ctr >= 1.5 && cpc > 0 && cpc <= 20 && purchases < 1) {
+        return ["多素材", "點擊品質不差，先延伸 3-5 張 AI 圖與首屏文案，不急著加大預算。"];
+      }
+      if (frequency >= 2.5 && ctr < 1.2) {
+        return ["換素材", "頻次偏高且點擊下降，保留受眾，優先換封面、主圖、第一句痛點。"];
+      }
+      if (spend >= 500 && roas < 1 && purchases < 1) {
+        return ["停止候選", "測試花費已到但沒有購買，先停或縮小預算，避免繼續燒。"];
+      }
+      return ["觀察中", "先保留 24 小時，補齊購買、加購、CTR、CPC 後再判斷。"];
     }
     function loadState() {
       const fresh = cloneDefaultState();
@@ -986,17 +1019,43 @@
       document.getElementById("ads").innerHTML = `
         <div class="grid two">
           <div class="panel">
-            <h2>廣告判讀門檻</h2>
+            <h2>FB 廣告助理判讀門檻</h2>
             <div class="card-list">
-              <div class="notice">加碼：ROAS >= 2，或 CPC 低且有加購/購買。</div>
-              <div class="notice">觀察：CTR 1% 到 1.5%，先改首 3 秒與受眾。</div>
-              <div class="notice">停止：CTR < 1% 且 CPC > NT$20，跑滿測試預算仍無購買。</div>
+              <div class="notice">加碼候選：ROAS >= 2.2 且至少 1 筆購買，先加 20% 預算上限，送出前仍要你確認。</div>
+              <div class="notice">多素材：CTR >= 1.5%、CPC <= NT$20 但還沒購買，先延伸 AI 圖，不急著加大預算。</div>
+              <div class="notice">停止候選：花費 >= NT$500、ROAS < 1 且沒有購買，先停或縮小測試預算。</div>
             </div>
           </div>
           <div class="panel">
-            <h2>第一波素材池</h2>
+            <h2>X23 素材分支池</h2>
             <div class="chips">${state.ads.map(a => `<span class="chip">${esc(a[0])}</span>`).join("")}</div>
+            <p class="muted" style="margin-top:10px">AI 作圖廣告如果銷量好，優先做同角度變體：露營桌面、地面裝備區、車露、派對、室內 KTV，不要一次把預算拉太快。</p>
           </div>
+        </div>
+        <div class="panel" style="margin-top:12px">
+          <h2>每日 FB 廣告回填</h2>
+          <p class="muted">先用 Meta Ads Manager 截圖或匯出報表手動填。這裡只產生建議；真正加預算、開新活動、停廣告前會等你確認。</p>
+          <form id="fbAdForm" class="mini-input wide" onsubmit="saveFbAdLog(event)">
+            <div><label>日期</label><input name="date" type="date" value="${esc(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10))}" required></div>
+            <div><label>活動 / 廣告組</label><input name="campaign" placeholder="X23-AI圖片" required></div>
+            <div><label>素材</label><input name="creative" placeholder="AI 露營情境圖"></div>
+            <div><label>花費</label><input name="spend" inputmode="decimal" placeholder="500"></div>
+            <div><label>購買金額</label><input name="revenue" inputmode="decimal" placeholder="4700"></div>
+            <div><label>購買數</label><input name="purchases" inputmode="numeric" placeholder="1"></div>
+            <div><label>CTR</label><input name="ctr" inputmode="decimal" placeholder="1.8%"></div>
+            <div><label>CPC</label><input name="cpc" inputmode="decimal" placeholder="18"></div>
+            <div><label>頻次</label><input name="frequency" inputmode="decimal" placeholder="1.4"></div>
+            <div class="field-wide"><label>備註</label><input name="notes" placeholder="例如：AI 圖銷量好、留言多、購買集中在晚上"></div>
+            <div><button class="action-button" type="submit">產生今日建議</button></div>
+          </form>
+          <div id="fbAdSavedNote" class="saved-note"></div>
+        </div>
+        <div class="panel" style="margin-top:12px">
+          <div class="actions" style="justify-content:space-between; align-items:center">
+            <h2 style="margin:0">FB 廣告助理紀錄</h2>
+            <button class="action-button small danger" type="button" onclick="clearFbAdLogs()">清空紀錄</button>
+          </div>
+          <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>日期</th><th>活動</th><th>素材</th><th>花費</th><th>購買金額</th><th>購買</th><th>CTR</th><th>CPC</th><th>頻次</th><th>判斷</th><th>下一步</th><th>備註</th></tr></thead><tbody>${rows(state.fbAdLogs)}</tbody></table></div>
         </div>
         <div class="panel" style="margin-top:12px">
           <h2>廣告素材追蹤</h2>
@@ -1005,6 +1064,43 @@
           </tbody></table></div>
         </div>
       `;
+    }
+
+    function saveFbAdLog(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const data = new FormData(form);
+      const spend = metricNumber(data.get("spend"));
+      const revenue = metricNumber(data.get("revenue"));
+      const purchases = metricNumber(data.get("purchases"));
+      const ctr = metricNumber(data.get("ctr"));
+      const cpc = metricNumber(data.get("cpc"));
+      const frequency = metricNumber(data.get("frequency"));
+      const [decision, nextAction] = decideFbAd({ spend, revenue, purchases, ctr, cpc, frequency });
+      state.fbAdLogs.unshift([
+        data.get("date") || "",
+        data.get("campaign") || "",
+        data.get("creative") || "",
+        normalizeMoney(data.get("spend")),
+        normalizeMoney(data.get("revenue")),
+        purchases ? String(Math.round(purchases)) : "",
+        normalizePercent(data.get("ctr")),
+        normalizeMoney(data.get("cpc")),
+        frequency ? String(frequency) : "",
+        decision,
+        nextAction,
+        data.get("notes") || "",
+      ].map(value => String(value || "").trim()));
+      saveState();
+      rerender("ads");
+      setSavedNote("fbAdSavedNote", `已判斷為「${decision}」。`);
+    }
+
+    function clearFbAdLogs() {
+      if (!confirm("確定清空 FB 廣告助理紀錄？這只會刪除本機預覽資料，不會動到 Meta 後台。")) return;
+      state.fbAdLogs = [];
+      saveState();
+      rerender("ads");
     }
 
     function setAdStatus(index, status) {
