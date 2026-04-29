@@ -253,6 +253,25 @@
       color: var(--muted);
       font-size: 13px;
     }
+    .login-pack-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .permission-guide {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .permission-guide div {
+      border: 1px solid rgba(233, 180, 93, .18);
+      border-radius: 8px;
+      background: rgba(15, 20, 25, .58);
+      padding: 9px;
+    }
     .workbench-group {
       margin-top: 14px;
     }
@@ -445,12 +464,12 @@
       </div>
       <nav id="nav"></nav>
       <div class="notice" style="margin-top:14px">
-        預覽版可跳轉平台，但不存帳密、不包含真實訂單與廣告報表。正式操作仍要人工登入與審核。
+        預覽版可一次打開常用後台，但不存帳密。登入狀態由 Chrome 保留，平台要求驗證時才需要你再登入。
       </div>
       <div class="confirm-box">
         <strong>一定要平皓確認</strong>
         <ul class="confirm-list">
-          <li><span>!</span><span>平台登入與權限授權</span></li>
+          <li><span>!</span><span>第一次授權、改權限、連接新帳號</span></li>
           <li><span>!</span><span>退款、取消訂單、退貨判斷</span></li>
           <li><span>!</span><span>改售價、改庫存、下架商品</span></li>
           <li><span>!</span><span>提高廣告預算或開新活動</span></li>
@@ -607,6 +626,17 @@
 
     let state = loadState();
     const previewUserStorageKey = "x23_preview_user";
+    const dailyLoginPlatformNames = [
+      "WACA 商店後台",
+      "蝦皮賣家中心",
+      "Momo SCM 後台",
+      "PChome 供應商平台",
+      "Meta Business Suite",
+      "Meta Ads Manager",
+      "Google Ads",
+      "Google Analytics",
+      "LINE 官方帳號",
+    ];
 
     function esc(value) {
       return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
@@ -779,6 +809,11 @@
             <h2>X23 登入工作台</h2>
             <p class="muted">裡面已經放好所有入口：WACA、1shop、蝦皮、Momo、PChome、Meta、Google、LINE、PayNow、Notion、GitHub、Netlify。日常會用的放前面，已串接、低頻設定放最後，你不用每天看到它們。</p>
             <div class="notice">我負責跳轉、整理、判讀、填草稿；真正送出發文、授權、加預算、退款、改價前會停下來等你確認。</div>
+            <div class="login-pack-actions">
+              <button class="action-button link" type="button" onclick="openDailyLoginPack()">一次開啟常用登入包</button>
+              <button class="action-button small" type="button" onclick="openNextDailyLogin()">逐一開下一個</button>
+            </div>
+            <div id="loginPackNote" class="saved-note" aria-live="polite"></div>
           </div>
           <div class="panel">
             <h2>使用方式</h2>
@@ -789,6 +824,10 @@
               <div>4. 如果新分頁被瀏覽器擋住，再按「同頁登入」當備用。</div>
             </div>
             <div class="notice" style="margin-top:12px">如果瀏覽器右上角出現彈出視窗被封鎖，請允許這個本機頁面開新分頁；平台登入完成後，Chrome 會用各平台自己的 Cookie 保持登入，這個中台不保存密碼。</div>
+            <div class="permission-guide">
+              <div><strong>右上角「變更權限」</strong>通常是工具或瀏覽器提醒：目前操作可能牽涉本機、外站、帳號或權限。這不是額度快沒了。</div>
+              <div><strong>登入不用每次問</strong>，但新增 OAuth、授權 LINE / Meta / Google 權限、送出發文、改廣告預算、退款和改價仍會先停下來等你。</div>
+            </div>
           </div>
         </div>
         ${platformGroups}
@@ -849,6 +888,50 @@
       }
       setPlatformNote(index, "新分頁被擋住，正在改用同頁登入。");
       window.location.href = url;
+    }
+
+    function getDailyLoginTargets() {
+      return dailyLoginPlatformNames
+        .map(name => state.platforms.findIndex(platform => platform[0] === name))
+        .filter(index => index >= 0);
+    }
+
+    function openDailyLoginPack() {
+      const targets = getDailyLoginTargets();
+      let openedCount = 0;
+      let blockedCount = 0;
+      targets.forEach(index => {
+        const platform = state.platforms[index];
+        const url = safeUrl(platform[1]);
+        if (url === "#") return;
+        const opened = window.open(url, "_blank", "noopener,noreferrer");
+        if (opened) openedCount += 1;
+        else blockedCount += 1;
+      });
+      localStorage.setItem("x23_daily_login_next_index", "0");
+      const blockedText = blockedCount ? `；${blockedCount} 個可能被瀏覽器擋住，請改按「逐一開下一個」` : "";
+      setSavedNote("loginPackNote", `已嘗試開啟 ${openedCount} 個常用後台${blockedText}。登入狀態由 Chrome 保留，這裡不存密碼。`);
+    }
+
+    function openNextDailyLogin() {
+      const targets = getDailyLoginTargets();
+      if (!targets.length) return;
+      const savedIndex = Number(localStorage.getItem("x23_daily_login_next_index") || "0");
+      const pointer = Number.isFinite(savedIndex) ? savedIndex % targets.length : 0;
+      const platformIndex = targets[pointer];
+      const platform = state.platforms[platformIndex];
+      const url = safeUrl(platform[1]);
+      localStorage.setItem("x23_daily_login_next_index", String((pointer + 1) % targets.length));
+      if (url === "#") {
+        setSavedNote("loginPackNote", "這個入口網址格式不正確，已跳過。");
+        return;
+      }
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (opened) {
+        setSavedNote("loginPackNote", `已開 ${platform[0]}；下一次會接著開下一個常用後台。`);
+        return;
+      }
+      setSavedNote("loginPackNote", `瀏覽器擋住新分頁，請允許彈出視窗，或直接在卡片按 ${platform[0]} 的同頁登入。`);
     }
 
     function saveShopeeMetric(event) {
