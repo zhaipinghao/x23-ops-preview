@@ -6,33 +6,37 @@
   <title>X23 電商營運中台｜預覽版</title>
   <style>
     :root {
-      --bg: #0d1014;
-      --surface: #151a20;
-      --surface-2: #1d252d;
-      --line: #303a45;
+      --bg: #090d11;
+      --surface: #121820;
+      --surface-2: #19222b;
+      --surface-3: #202b35;
+      --line: #2b3744;
       --text: #f5f7fa;
-      --muted: #aeb8c4;
+      --muted: #aab6c4;
       --cyan: #46d5ca;
       --gold: #e9b45d;
       --red: #ff7366;
       --green: #7bd88f;
       --blue: #82aaff;
+      --shadow: 0 18px 60px rgba(0, 0, 0, .28);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: var(--bg);
+      background:
+        linear-gradient(180deg, #0b1015 0%, #080b0f 44%, #090d11 100%);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
       line-height: 1.45;
     }
     button, input, textarea, select { font: inherit; }
     a { color: var(--cyan); text-decoration: none; }
-    .app { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; }
+    .app { display: grid; grid-template-columns: 272px minmax(0, 1fr); min-height: 100vh; }
     aside {
       border-right: 1px solid var(--line);
-      background: #11161b;
-      padding: 18px 14px;
+      background:
+        linear-gradient(180deg, rgba(19, 26, 34, .98), rgba(10, 14, 19, .98));
+      padding: 20px 16px;
       position: sticky;
       top: 0;
       height: 100vh;
@@ -50,6 +54,7 @@
       color: var(--cyan);
       font-weight: 800;
       letter-spacing: 0;
+      box-shadow: inset 0 0 0 1px rgba(70, 213, 202, .12);
     }
     .brand strong { display: block; font-size: 15px; }
     .brand span { display: block; color: var(--muted); font-size: 12px; }
@@ -61,28 +66,43 @@
       background: transparent;
       color: var(--muted);
       text-align: left;
-      padding: 8px 10px;
+      padding: 9px 10px;
       cursor: pointer;
       margin: 3px 0;
     }
     nav button.active, nav button:hover {
       color: var(--text);
-      background: #1c242c;
-      border-color: #2a3440;
+      background: rgba(70, 213, 202, .08);
+      border-color: rgba(70, 213, 202, .26);
     }
-    main { padding: 20px; width: 100%; max-width: 1480px; }
+    main { padding: 24px; width: 100%; max-width: 1540px; }
     header {
       display: flex;
       justify-content: space-between;
       gap: 16px;
       align-items: flex-start;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
     h1 { margin: 0 0 6px; font-size: 25px; letter-spacing: 0; }
     h2 { margin: 0 0 12px; font-size: 18px; letter-spacing: 0; }
     h3 { margin: 0 0 8px; font-size: 15px; }
     p { margin: 0 0 10px; }
     .sub { color: var(--muted); max-width: 860px; font-size: 13px; }
+    .official-url {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      max-width: 100%;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(70, 213, 202, .34);
+      background: rgba(70, 213, 202, .08);
+      color: #bffaf5;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .badge-row, .chips, .actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .badge, .chip {
       display: inline-flex;
@@ -97,18 +117,24 @@
       white-space: nowrap;
     }
     .panel {
-      background: var(--surface);
+      background: linear-gradient(180deg, rgba(20, 27, 35, .98), rgba(15, 20, 26, .98));
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 14px;
+      padding: 16px;
       min-width: 0;
+      box-shadow: var(--shadow);
     }
+    .panel.tight { padding: 12px; }
     .grid { display: grid; gap: 12px; }
     .kpis { grid-template-columns: repeat(6, minmax(120px, 1fr)); }
     .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .kpi span { color: var(--muted); font-size: 12px; }
     .kpi strong { display: block; font-size: 22px; margin-top: 6px; }
+    .kpi {
+      border-color: rgba(70, 213, 202, .14);
+      background: linear-gradient(180deg, rgba(25, 34, 43, .95), rgba(14, 19, 25, .95));
+    }
     .section { display: none; }
     .section.active { display: block; }
     .welcome-panel {
@@ -155,6 +181,7 @@
       max-height: 540px;
       border: 1px solid var(--line);
       border-radius: 8px;
+      background: #0d1218;
     }
     table { border-collapse: collapse; width: 100%; font-size: 13px; }
     th, td { border-bottom: 1px solid var(--line); padding: 9px 8px; text-align: left; vertical-align: top; }
@@ -192,7 +219,7 @@
     .fake-button, .action-button {
       border: 1px solid #3b4a56;
       border-radius: 6px;
-      background: #26313b;
+      background: var(--surface-3);
       color: var(--text);
       min-height: 36px;
       padding: 8px 10px;
@@ -218,7 +245,7 @@
     }
     .action-button.link {
       border-color: rgba(70, 213, 202, .65);
-      background: rgba(70, 213, 202, .14);
+      background: rgba(70, 213, 202, .16);
       color: #bffaf5;
     }
     .action-button.warn {
@@ -288,6 +315,13 @@
       justify-content: space-between;
       gap: 8px;
     }
+    .workbench-card {
+      transition: border-color .16s ease, transform .16s ease, background .16s ease;
+    }
+    .workbench-card:hover {
+      border-color: rgba(70, 213, 202, .36);
+      transform: translateY(-1px);
+    }
     .platform-actions {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(112px, max-content));
@@ -355,6 +389,48 @@
       grid-template-columns: 18px minmax(0, 1fr);
       gap: 6px;
       align-items: start;
+    }
+    .safety-hero {
+      border-color: rgba(233, 180, 93, .48);
+      background:
+        linear-gradient(135deg, rgba(233, 180, 93, .13), rgba(70, 213, 202, .08)),
+        var(--surface);
+      margin-bottom: 12px;
+    }
+    .safety-hero h2 { font-size: 22px; }
+    .safety-url {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(70, 213, 202, .24);
+      background: rgba(9, 13, 17, .62);
+    }
+    .safety-url a {
+      overflow-wrap: anywhere;
+      color: #bffaf5;
+      font-size: 13px;
+    }
+    .safety-rules {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .safety-rule {
+      border: 1px solid rgba(170, 182, 196, .16);
+      border-radius: 8px;
+      background: rgba(10, 14, 19, .72);
+      padding: 14px;
+    }
+    .safety-rule strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .safety-rule p {
+      color: var(--muted);
+      font-size: 13px;
     }
     .login-screen {
       position: fixed;
@@ -427,6 +503,7 @@
       .row { grid-template-columns: 1fr; }
       .platform-actions { grid-template-columns: 1fr; }
       .platform-actions .action-button, .platform-actions .badge { width: 100%; }
+      .safety-rules { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -483,6 +560,7 @@
         <div>
           <h1>X23 電商營運中台預覽</h1>
           <div class="sub">這份版本是給妹妹與內部夥伴看的流程展示：可以先新增貼文、切任務狀態、回填蝦皮數字；平台正式操作仍保留人工登入與審核。</div>
+          <a class="official-url" href="https://zhaipinghao.github.io/x23-ops-preview/#safety" target="_blank" rel="noopener noreferrer">正式網址：https://zhaipinghao.github.io/x23-ops-preview/#safety</a>
         </div>
         <div class="badge-row">
           <span class="badge">展示資料</span>
@@ -504,6 +582,8 @@
   </div>
 
   <script>
+    const publicBaseUrl = "https://zhaipinghao.github.io/x23-ops-preview/";
+    const publicSafetyUrl = `${publicBaseUrl}#safety`;
     const tabs = [
       ["dashboard", "總覽"],
       ["platforms", "平台登入"],
@@ -540,14 +620,14 @@
         ["早上", "回填昨天各平台銷售、訂單、廣告費", "人工 5 分鐘"],
         ["上午", "Agent 判斷掉單、毛利、廣告異常", "Agent 2 / 4"],
         ["中午", "只處理出貨、缺貨、客訴、補拍素材", "人工"],
-        ["下午", "商品頁、短影音、KOL、貼文排程", "Agent 1 / 3"],
+        ["下午", "Agent 4 排下午隊列；Agent 1 做商品頁與素材，Agent 3 做短影音、KOL、貼文排程", "Agent 4 分派，Agent 1 / 3 執行"],
         ["晚上", "整理明日待辦與高風險審核", "Agent 4"],
       ],
       tasks: [
         ["P0", "匯出蝦皮近 30 天訂單與站內廣告報表", "數據", "人工", "今天", "缺資料"],
         ["P0", "匯出 Meta Ads 近 30 天素材成效", "廣告", "人工", "今天", "缺資料"],
-        ["P0", "確認官網 Pixel / Purchase 事件", "廣告", "人工", "明天", "待確認"],
-        ["P1", "補白底主圖與組合包內容圖", "素材", "人工", "本週", "缺素材"],
+        ["P0", "確認官網 Pixel / Purchase 事件", "廣告", "人工", "明天", "完成"],
+        ["P1", "補白底主圖與組合包內容圖", "素材", "人工", "本週", "完成"],
         ["P1", "排 7 天 IG / FB / Threads 內容", "社群", "Agent 3", "本週", "草稿"],
         ["P1", "整理 KOL 第一批聯繫名單", "KOL", "Agent 3", "本週", "進行中"],
       ],
@@ -566,6 +646,7 @@
         ["廣告報表", "Meta / 蝦皮", "缺資料", "判斷素材加碼或停止"],
         ["KOL 名單", "Excel", "部分已有", "追蹤聯繫與轉換"],
         ["素材資料夾", "圖片 / 影片", "已找到", "分類後排進貼文"],
+        ["x23GPT 做圖資料夾", "本機資料夾", "已找到", "公開頁不顯示本機完整路徑"],
         ["專案文件", "Notion / PDF", "已整理", "轉成任務與 SOP"],
       ],
       ads: [
@@ -680,19 +761,29 @@
       }
       return ["觀察中", "先保留 24 小時，補齊購買、加購、CTR、CPC 後再判斷。"];
     }
+    function sanitizeState(nextState) {
+      if (Array.isArray(nextState.sources)) {
+        nextState.sources = nextState.sources.map(row => row.map(cell => {
+          const value = String(cell ?? "");
+          if (value.startsWith("/Users/") || value.startsWith("file://")) return "公開頁不顯示本機完整路徑";
+          return cell;
+        }));
+      }
+      return nextState;
+    }
     function loadState() {
       const fresh = cloneDefaultState();
       const raw = localStorage.getItem(storageKey);
-      if (!raw) return fresh;
+      if (!raw) return sanitizeState(fresh);
       try {
         const saved = JSON.parse(raw);
         const merged = cloneDefaultState();
         persistedStateKeys.forEach(key => {
           if (Array.isArray(saved[key])) merged[key] = saved[key];
         });
-        return merged;
+        return sanitizeState(merged);
       } catch (error) {
-        return fresh;
+        return sanitizeState(fresh);
       }
     }
     function saveState() {
@@ -1040,6 +1131,16 @@
         <div class="panel">
           <h2>任務分工</h2>
           <div class="notice">Agent 做整理、分析、文案與提醒；人工做登入、出貨、退款、改價、預算核准。</div>
+          <div class="grid two" style="margin-top:12px">
+            <div class="panel">
+              <h2>下午誰安排</h2>
+              <p class="muted">Agent 4 是排程 PM，負責把下午工作拆成今天要做、缺什麼素材、哪些要先給你確認；Agent 1 接商品頁與素材，Agent 3 接短影音、KOL、貼文排程。</p>
+            </div>
+            <div class="panel">
+              <h2>Agent 會存在什麼</h2>
+              <p class="muted">它們不是常駐真人帳號，而是固定工作角色。規則會留在這個中台與任務表裡；每次你叫我繼續，我就照這套分工接上，不需要重新解釋。</p>
+            </div>
+          </div>
           <form class="preview-form" style="margin-top:12px" onsubmit="saveTask(event)">
             <div><label>優先</label><select name="priority"><option>P0</option><option>P1</option><option>P2</option></select></div>
             <div><label>任務</label><input name="task" placeholder="例如：匯出今日蝦皮廣告報表" required></div>
@@ -1226,20 +1327,51 @@
 
     function renderSafety() {
       document.getElementById("safety").innerHTML = `
-        <div class="grid two">
-          <div class="panel">
-            <h2>不能放到預覽版的東西</h2>
-            <div class="chips">
-              ${["平台密碼", "API Key", "Cookie / Token", "真實訂單", "客戶資料", "廣告原始報表", "SQLite 資料庫", "本機路徑"].map(x => `<span class="chip">${esc(x)}</span>`).join("")}
+        <div class="panel safety-hero">
+          <h2>X23 內部中台正式網址</h2>
+          <p class="muted">公開預覽頁使用 GitHub Pages，適合給內部夥伴看流程、登入入口、任務分工與安全規則。這不是存放密碼或真實訂單的正式資料庫。</p>
+          <div class="safety-url">
+            <strong>正式網址</strong>
+            <a href="${esc(publicSafetyUrl)}" target="_blank" rel="noopener noreferrer">${esc(publicSafetyUrl)}</a>
+            <div class="actions">
+              <a class="action-button link" href="${esc(publicSafetyUrl)}" target="_blank" rel="noopener noreferrer">開啟正式頁</a>
+              <button class="action-button small" type="button" onclick="copyOfficialUrl()">複製網址</button>
             </div>
           </div>
-          <div class="panel">
-            <h2>正式版才會做</h2>
-            <p class="muted">登入權限、公司內部網址、雲端資料庫、報表上傳、平台 API/OAuth、操作審核紀錄。</p>
-            <button class="action-button danger" type="button" onclick="resetPreviewData()">重置本機預覽資料</button>
+          <div id="officialUrlNote" class="saved-note" aria-live="polite"></div>
+        </div>
+        <div class="safety-rules">
+          <div class="safety-rule">
+            <strong>不能放到公開預覽</strong>
+            <p>平台密碼、API Key、Cookie / Token、真實訂單、客戶資料、廣告原始報表、SQLite 資料庫、本機完整路徑。</p>
+          </div>
+          <div class="safety-rule">
+            <strong>必須人工確認</strong>
+            <p>退款、取消訂單、退貨、改價、改庫存、下架商品、提高廣告預算、LINE / Meta / Google 授權。</p>
+          </div>
+          <div class="safety-rule">
+            <strong>正式版才會做</strong>
+            <p>真正登入權限、公司內部網址、雲端資料庫、報表上傳、平台 API/OAuth、操作審核紀錄。</p>
           </div>
         </div>
+        <div class="panel" style="margin-top:12px">
+          <h2>本機預覽資料</h2>
+          <p class="muted">這個按鈕只會重置瀏覽器 localStorage 裡的示範資料，不會影響任何平台後台。</p>
+          <button class="action-button danger" type="button" onclick="resetPreviewData()">重置本機預覽資料</button>
+        </div>
       `;
+    }
+
+    function copyOfficialUrl() {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(publicSafetyUrl).then(() => {
+          setSavedNote("officialUrlNote", "已複製正式網址。");
+        }).catch(() => {
+          setSavedNote("officialUrlNote", publicSafetyUrl);
+        });
+        return;
+      }
+      setSavedNote("officialUrlNote", publicSafetyUrl);
     }
 
     function resetPreviewData() {
