@@ -150,6 +150,69 @@
       max-width: 900px;
     }
     .welcome-panel .actions { margin-top: 12px; }
+    .feature-media {
+      display: grid;
+      grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+      border-color: rgba(70, 213, 202, .28);
+    }
+    .feature-media img {
+      width: 100%;
+      height: 100%;
+      max-height: 380px;
+      object-fit: cover;
+      object-position: center top;
+      border-radius: 8px;
+      border: 1px solid rgba(170, 182, 196, .18);
+      background: #0d1218;
+    }
+    .feature-copy {
+      display: grid;
+      align-content: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .feature-copy h2 {
+      margin-bottom: 0;
+      font-size: 22px;
+    }
+    .media-tag {
+      display: inline-flex;
+      width: fit-content;
+      min-height: 24px;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(233, 180, 93, .48);
+      background: rgba(233, 180, 93, .12);
+      color: #ffe1ad;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .asset-visual-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .asset-visual-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(13, 18, 24, .82);
+    }
+    .asset-visual-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      object-position: center top;
+      background: #0d1218;
+    }
+    .asset-visual-card div {
+      padding: 10px;
+    }
     .handoff-list {
       display: grid;
       gap: 8px;
@@ -504,6 +567,8 @@
       .platform-actions { grid-template-columns: 1fr; }
       .platform-actions .action-button, .platform-actions .badge { width: 100%; }
       .safety-rules { grid-template-columns: 1fr; }
+      .feature-media { grid-template-columns: 1fr; }
+      .feature-media img { max-height: none; aspect-ratio: 4 / 5; }
     }
   </style>
 </head>
@@ -584,6 +649,8 @@
   <script>
     const publicBaseUrl = "https://zhaipinghao.github.io/x23-ops-preview/";
     const publicSafetyUrl = `${publicBaseUrl}#safety`;
+    const image2AssetPath = "assets/image2-liwei.jpg";
+    const socialGrowthUrl = "https://mjtwlike2.com/";
     const tabs = [
       ["dashboard", "總覽"],
       ["platforms", "平台登入"],
@@ -684,6 +751,7 @@
         ["PChome 供應商平台", "https://ecvdr.pchome.com.tw/v2016/hp/v1/", "商品、訂單、庫存", "每週檢查商品與訂單", "銷售通路", "待登入"],
         ["Meta Business Suite", "https://business.facebook.com/latest/home", "FB / IG 內容、排程、收件匣", "排貼文與看互動", "廣告社群", "待登入"],
         ["Meta Ads Manager", "https://business.facebook.com/adsmanager", "FB / IG 廣告活動、素材成效", "每週匯出活動與素材報表", "廣告社群", "待登入"],
+        ["社群行銷王", "https://mjtwlike2.com/", "FB / IG / YouTube 增粉與互動服務", "需要補社群互動時先看方案，付款前確認", "廣告社群", "已放入口"],
         ["Facebook 粉專", "https://www.facebook.com/94guai", "94monster 粉絲專頁", "看貼文、留言、粉專狀態", "廣告社群", "已放入口"],
         ["Instagram", "https://www.instagram.com/94monster/", "IG 貼文、Reels、限動、私訊", "發布排程與自動回覆檢查", "廣告社群", "已放入口"],
         ["Google Ads", "https://ads.google.com/aw/overview", "Google 廣告活動與轉換", "看活動、轉換、費用", "廣告社群", "已放入口"],
@@ -1073,6 +1141,18 @@
             <div class="notice">留言關鍵字先用「X23」「露營音響」「購買連結」做分流；真正回覆內容上線前仍要確認平台規範與文案。</div>
           </div>
         </div>
+        <div class="panel feature-media" style="margin-top:12px">
+          <img src="${esc(image2AssetPath)}" alt="X23 image2 女神推薦購買連結素材" loading="lazy">
+          <div class="feature-copy">
+            <span class="media-tag">image2 推薦素材</span>
+            <h2>女神推薦 / 購買連結版</h2>
+            <p class="muted">這張先放進社群素材池，適合接 IG 限動、FB 圖文或短影音封面。正式排程前仍要確認人物與推薦文可用範圍。</p>
+            <div class="actions">
+              <button class="action-button link" type="button" onclick="show('assets')">看素材庫</button>
+              <a class="action-button" href="${esc(socialGrowthUrl)}" target="_blank" rel="noopener noreferrer">開啟社群行銷王</a>
+            </div>
+          </div>
+        </div>
         <div class="panel" style="margin-top:12px">
           <h2>新增貼文</h2>
           <form class="preview-form" onsubmit="savePost(event)">
@@ -1298,7 +1378,16 @@
       document.getElementById("assets").innerHTML = `
         <div class="panel">
           <h2>素材庫存概念</h2>
-          <p class="muted">正式版會讀素材資料夾並分類。預覽版用 placeholder，不放真實人物照或未授權評價截圖。</p>
+          <p class="muted">預覽版先把 image2 放進可檢視素材池。人物推薦、KOL、評價截圖正式投放前仍要先確認授權範圍。</p>
+        </div>
+        <div class="asset-visual-grid">
+          <div class="asset-visual-card">
+            <img src="${esc(image2AssetPath)}" alt="X23 image2 女神推薦購買連結素材" loading="lazy">
+            <div>
+              <strong>image2｜女神推薦購買連結</strong><br>
+              <span class="muted">建議用於 IG 限動、FB 圖文、短影音封面。狀態：待授權確認後排程。</span>
+            </div>
+          </div>
         </div>
         <div class="asset-grid" style="margin-top:12px">
           ${state.assets.map(a => `<div class="asset"><div class="thumb">${esc(a[0])}</div><div><strong>${esc(a[0])}</strong><br><span class="muted">${esc(a[1])}</span></div></div>`).join("")}
