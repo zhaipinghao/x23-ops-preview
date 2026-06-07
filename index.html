@@ -103,6 +103,22 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .version-pin {
+      position: fixed;
+      right: 8px;
+      bottom: 5px;
+      z-index: 40;
+      padding: 2px 6px;
+      border: 1px solid rgba(170, 182, 196, .18);
+      border-radius: 999px;
+      background: rgba(9, 13, 17, .58);
+      color: rgba(170, 182, 196, .64);
+      font-size: 10px;
+      line-height: 1.35;
+      pointer-events: none;
+      user-select: none;
+      backdrop-filter: blur(6px);
+    }
     .badge-row, .chips, .actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .badge, .chip {
       display: inline-flex;
@@ -580,6 +596,7 @@
       <section id="safety" class="section"></section>
     </main>
   </div>
+  <div class="version-pin" aria-label="目前版本">X23 v2026.06.07.1</div>
 
   <script>
     const publicBaseUrl = "https://zhaipinghao.github.io/x23-ops-preview/";
